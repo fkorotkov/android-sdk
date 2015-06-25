@@ -30,6 +30,15 @@
 
 package com.kinvey.java.core;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Map;
+
 import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.GenericUrl;
@@ -43,22 +52,13 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.util.IOUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
-
-import java.io.BufferedInputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.kinvey.java.File;
 import com.kinvey.java.KinveyException;
+import com.kinvey.java.Logger;
 import com.kinvey.java.LinkedResources.SaveLinkedResourceClientRequest;
 import com.kinvey.java.model.FileMetaData;
-import com.kinvey.java.model.UriLocResponse;
 
 /**
  * Media HTTP Uploader, with support for both direct and resumable media uploads. Documentation is
@@ -332,13 +332,13 @@ public class MediaHttpUploader {
             }else{
                 throw new KinveyException("_uploadURL is null!","do not remove _uploadURL in collection hooks for File!","The library cannot upload a file without this url");
             }
-            uploadUrl = new GenericUrl(meta.getUploadUrl());
         } finally {
             initialResponse.disconnect();
         }
 
         // Convert media content into a byte stream to upload in chunks.
         contentInputStream = mediaContent.getInputStream();
+        
         if (!contentInputStream.markSupported() && getMediaContentLength() >= 0) {
             // If we know the media content length then wrap the stream into a Buffered input stream to
             // support the {@link InputStream#mark} and {@link InputStream#reset} methods required for
@@ -349,10 +349,12 @@ public class MediaHttpUploader {
         HttpResponse response;
         // Upload the media content in chunks.
         while (true && !cancelled) {
+        	Logger.INFO("looping");
             currentRequest = requestFactory.buildPutRequest(uploadUrl, null);
             currentRequest.setSuppressUserAgentSuffix(true);
 //            addMethodOverride(currentRequest); // needed for PUT
-            setContentAndHeadersOnCurrentRequest(bytesUploaded);
+            String totalBytes = setContentAndHeadersOnCurrentRequest(bytesUploaded);
+            Logger.INFO("set content on request, uploaded so far is:  " + bytesUploaded);
             // TODO (mbickle): should we keep backoff policy?
 //            if (backOffPolicyEnabled) {
 //                // Set MediaExponentialBackOffPolicy as the BackOffPolicy of the HTTP Request which will
@@ -378,34 +380,62 @@ public class MediaHttpUploader {
             response = currentRequest.execute();
             boolean returningResponse = false;
             try {
-                if (response.isSuccessStatusCode()) {
+//            	Logger.INFO("is total bytes good to go: " + !totalBytes.equals("*"));
+//            	Logger.INFO("is byte index good to go: " + (Long.parseLong(totalBytes) > getNextByteIndex(response.getHeaders().getRange())));
+            	if (!totalBytes.equals("*") && (Long.parseLong(totalBytes) > getNextByteIndex(currentRequest.getHeaders().getContentRange())) ){
+            		//keep going
+                    // Check to see if the upload URL has changed on the server.
+                    String updatedUploadUrl = response.getHeaders().getLocation();
+                    if (updatedUploadUrl != null) {
+                        uploadUrl = new GenericUrl(updatedUploadUrl);
+                    }
+                    bytesUploaded = getNextByteIndex(currentRequest.getHeaders().getContentRange());
+                    currentRequestContentBuffer = null;
+                    updateStateAndNotifyListener(UploadState.UPLOAD_IN_PROGRESS);
+                    Logger.INFO("Gonna keep going, uploaded: "+ bytesUploaded);
+            	}else if (response.isSuccessStatusCode()) {
+                	
                     bytesUploaded = getMediaContentLength();
                     contentInputStream.close();
                     updateStateAndNotifyListener(UploadState.UPLOAD_COMPLETE);
                     returningResponse = true;
+                    Logger.INFO("Done, uploaded: "+ bytesUploaded);
                     return response;
-                }
-
-                if (response.getStatusCode() != 308) {
+                }else if (response.getStatusCode() != 308) {
                     returningResponse = true;
                     return response;
                 }
+            	
+//                if (response.isSuccessStatusCode()){
+//                    bytesUploaded = getMediaContentLength();
+//                    contentInputStream.close();
+//                    updateStateAndNotifyListener(UploadState.UPLOAD_COMPLETE);
+//                    returningResponse = true;
+//                    return response;
+//                }
+//
+//                if (response.getStatusCode() != 308) {
+//                    returningResponse = true;
+//                    return response;
+//                }
+//
+//                // Check to see if the upload URL has changed on the server.
+//                String updatedUploadUrl = response.getHeaders().getLocation();
+//                if (updatedUploadUrl != null) {
+//                    uploadUrl = new GenericUrl(updatedUploadUrl);
+//                }
+//                bytesUploaded = getNextByteIndex(response.getHeaders().getRange());
+//                currentRequestContentBuffer = null;
+//                updateStateAndNotifyListener(UploadState.UPLOAD_IN_PROGRESS);
 
-                // Check to see if the upload URL has changed on the server.
-                String updatedUploadUrl = response.getHeaders().getLocation();
-                if (updatedUploadUrl != null) {
-                    uploadUrl = new GenericUrl(updatedUploadUrl);
-                }
-                bytesUploaded = getNextByteIndex(response.getHeaders().getRange());
-                currentRequestContentBuffer = null;
-                updateStateAndNotifyListener(UploadState.UPLOAD_IN_PROGRESS);
+
             } finally {
                 if (!returningResponse) {
                     response.disconnect();
                 }
             }
         }
-        return null; // TODO ensure this works for both cancelled and not-cancelled requests
+        return null;
     }
 
     /**
@@ -469,8 +499,9 @@ public class MediaHttpUploader {
      * request.
      *
      * @param bytesWritten The number of bytes that have been successfully uploaded on the server
+     * @return total bytes of the upload as String, or "*"
      */
-    private void setContentAndHeadersOnCurrentRequest(long bytesWritten) throws IOException {
+    private String setContentAndHeadersOnCurrentRequest(long bytesWritten) throws IOException {
         int blockSize;
         if (getMediaContentLength() >= 0) {
             // We know exactly what the blockSize will be because we know the media content length.
@@ -479,16 +510,17 @@ public class MediaHttpUploader {
             // Use the chunkSize as the blockSize because we do know what what it is yet.
             blockSize = chunkSize;
         }
-
+        
         AbstractInputStreamContent contentChunk;
         int actualBlockSize = blockSize;
         String mediaContentLengthStr;
         if (getMediaContentLength() >= 0) {
+        	
             // Mark the current position in case we need to retry the request.
             contentInputStream.mark(blockSize);
 
             InputStream limitInputStream = ByteStreams.limit(contentInputStream, blockSize);
-            
+            Logger.INFO("blocksize is: " + blockSize);
             contentChunk = new InputStreamContent(mediaContent.getType(), limitInputStream)
                     .setRetrySupported(true)
                     .setLength(blockSize)
@@ -544,6 +576,8 @@ public class MediaHttpUploader {
 
         currentRequest.getHeaders().setContentRange("bytes " + bytesWritten + "-" +
                 (bytesWritten + actualBlockSize - 1) + "/" + mediaContentLengthStr);
+        
+        return mediaContentLengthStr;
     }
 
 //    /**
@@ -609,10 +643,13 @@ public class MediaHttpUploader {
      * @return the byte index beginning where the server has yet to receive data
      */
     private long getNextByteIndex(String rangeHeader) {
-        if (rangeHeader == null) {
+        if (rangeHeader == null || rangeHeader.contains("--")) {
+        	Logger.INFO("nope rangeHeader, it's 0 now");
             return 0L;
         }
-        return Long.parseLong(rangeHeader.substring(rangeHeader.indexOf('-') + 1)) + 1;
+        
+        Logger.INFO("parsing rangeHeader, it's: " +  Long.parseLong(rangeHeader.substring(rangeHeader.indexOf('-') + 1, rangeHeader.indexOf("/"))) + 1);
+        return Long.parseLong(rangeHeader.substring(rangeHeader.indexOf('-') + 1,  rangeHeader.indexOf("/"))) + 1;
     }
 
     /** Returns HTTP content metadata for the media request or {@code null} for none. */
