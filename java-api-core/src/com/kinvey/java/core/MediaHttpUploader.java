@@ -350,6 +350,7 @@ public class MediaHttpUploader {
         // Upload the media content in chunks.
         while (true && !cancelled) {
         	Logger.INFO("looping");
+        	uploadUrl.put("uploadType", "resumable");
             currentRequest = requestFactory.buildPutRequest(uploadUrl, null);
             currentRequest.setSuppressUserAgentSuffix(true);
 //            addMethodOverride(currentRequest); // needed for PUT
