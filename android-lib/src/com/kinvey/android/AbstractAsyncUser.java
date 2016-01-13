@@ -15,11 +15,16 @@ package com.kinvey.android;
 
 import java.io.IOException;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Bundle;
+import android.support.customtabs.CustomTabsCallback;
+import android.support.customtabs.CustomTabsIntent;
+import android.support.customtabs.CustomTabsSession;
 import android.util.Log;
 
 import com.google.api.client.json.GenericJson;
@@ -30,6 +35,7 @@ import com.kinvey.android.callback.KinveyUserDeleteCallback;
 import com.kinvey.android.callback.KinveyUserListCallback;
 import com.kinvey.android.callback.KinveyUserManagementCallback;
 import com.kinvey.android.ui.MICLoginActivity;
+import com.kinvey.android.ui.customtabs.KinveyCustomTabs;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.KinveyException;
 import com.kinvey.java.Query;
@@ -104,7 +110,7 @@ public abstract class AbstractAsyncUser<T extends User> extends User<T> {
      *
      */
     private boolean clearStorage = true;
-    
+
     /**
      * The callback for the MIC login, this is maintained because it used by the broadcast reciever after the redirect
      */
@@ -620,7 +626,21 @@ public abstract class AbstractAsyncUser<T extends User> extends User<T> {
 		if (accessToken == null){
 			return;
 		}
+
 		getMICAccessToken(accessToken);
+    }
+
+    /**
+     * Used by the MIC login flow, this method should be called after a successful login when page with redirectURL started to load.  See the MIC guide for more information.
+     *
+     * @param uri The complete redirect URI provided to the application from the redirect
+     */
+    public void onOAuthCallbackRecieved(Uri uri){
+        String accessToken = uri.getQueryParameter("code");
+        if (accessToken == null){
+            return;
+        }
+        getMICAccessToken(accessToken);
     }
     
     /***
@@ -654,28 +674,44 @@ public abstract class AbstractAsyncUser<T extends User> extends User<T> {
      * @param redirectURI
      * @param callback
      */
-    public void presentMICLoginActivity(String redirectURI, final KinveyUserCallback callback){
+    public void presentMICLoginActivity(final Activity activity, final String redirectURI, final KinveyUserCallback callback){
+
+
+
+
+
 
         loginWithAuthorizationCodeLoginPage(redirectURI, new KinveyMICCallback() {
             @Override
-            public void onReadyToRender(String myURLToRender) {
-                Intent i = new Intent(getClient().getContext(), MICLoginActivity.class);
-                i.putExtra(MICLoginActivity.KEY_LOGIN_URL, myURLToRender);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK  | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                getClient().getContext().startActivity(i);
+            public void onReadyToRender(final String myURLToRender) {
+                CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
+                KinveyCustomTabs.openCustomTab(activity, customTabsIntent, Uri.parse(myURLToRender), new KinveyCustomTabs.CustomTabFallback() {
+                    @Override
+                    public void openUri(Activity activity, Uri uri) {
+                        Intent i = new Intent(getClient().getContext(), MICLoginActivity.class);
+                        i.putExtra(MICLoginActivity.KEY_LOGIN_URL, myURLToRender);
+                        i.putExtra(MICLoginActivity.KEY_REDIRECT_URL, redirectURI);
+                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        getClient().getContext().startActivity(i);
+
+                    }
+                });
+
             }
 
             @Override
             public void onSuccess(User result) {
-                if(callback != null){
+                if (callback != null) {
                     callback.onSuccess(result);
+                    activity.finishActivity(KinveyCustomTabs.REQUEST_CODE);
                 }
             }
 
             @Override
             public void onFailure(Throwable error) {
-                if(callback != null){
+                if (callback != null) {
                     callback.onFailure(error);
+                    activity.finishActivity(KinveyCustomTabs.REQUEST_CODE);
                 }
             }
         });
