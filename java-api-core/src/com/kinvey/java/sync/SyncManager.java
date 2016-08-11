@@ -154,7 +154,7 @@ public class SyncManager {
 
 
 //        DataStore networkDataStore = client.dataStore(request.getCollectionName(), GenericJson.class, StoreType.NETWORK);
-        DataStore networkDataStore =  DataStore.collection(request.getCollectionName(),GenericJson.class, StoreType.NETWORK);
+        DataStore networkDataStore =  DataStore.collection(request.getCollectionName(),GenericJson.class, StoreType.NETWORK, true);
 
         if (request.getHttpVerb().equals(SyncRequest.HttpVerb.PUT) || request.getHttpVerb().equals((SyncRequest.HttpVerb.POST))) {
 
