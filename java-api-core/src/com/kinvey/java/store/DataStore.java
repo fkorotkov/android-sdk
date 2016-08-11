@@ -68,7 +68,7 @@ public class DataStore<T extends GenericJson> {
         this(client, collection, itemType, storeType, new NetworkManager<T>(collection, itemType, client));
     }
 
-    protected  DataStore(AbstractClient client, String collection, Class<T> itemType, StoreType storeType,
+    protected DataStore(AbstractClient client, String collection, Class<T> itemType, StoreType storeType,
                          NetworkManager<T> networkManager){
         this.storeType = storeType;
         this.client = client;
@@ -79,19 +79,19 @@ public class DataStore<T extends GenericJson> {
         this.collectionName = collection;
     }
 
-    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType) {
+    public static <T extends GenericJson> DataStore<T> collection(String collection, Class<T> itemType, StoreType storeType) {
         return collection(collection, itemType, storeType, false);
     }
 
-    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet) {
+    public static <T extends GenericJson> DataStore<T> collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet) {
         return collection(collection, itemType, storeType, deltaSet, AbstractClient.sharedInstance());
     }
 
-    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client) {
+    public static <T extends GenericJson> DataStore<T> collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client) {
         return collection(collection, itemType, storeType, deltaSet, client, "kinvey");
     }
 
-    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client, String tag) {
+    public static <T extends GenericJson> DataStore<T> collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client, String tag) {
         String key = createKey(itemType, tag, storeType);
         if (dataStoreHashMap == null) {
             dataStoreHashMap = new HashMap<>();

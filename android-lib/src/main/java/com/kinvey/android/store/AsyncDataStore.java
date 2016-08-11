@@ -140,7 +140,7 @@ public class AsyncDataStore<T extends GenericJson> extends DataStore<T> {
      * @param collectionName Name of the appData collection
      * @param myClass        Class Type to marshall data between.
      */
-    public AsyncDataStore(String collectionName, Class myClass, AbstractClient client, StoreType storeType) {
+    public AsyncDataStore(String collectionName, Class<T> myClass, AbstractClient client, StoreType storeType) {
         super(client, collectionName, myClass, storeType);
         loadMethodMap();
     }
@@ -150,31 +150,31 @@ public class AsyncDataStore<T extends GenericJson> extends DataStore<T> {
      * @param collectionName Name of the appData collection
      * @param myClass        Class Type to marshall data between.
      */
-    public AsyncDataStore(String collectionName, Class myClass, AbstractClient client, StoreType storeType, NetworkManager<T> networkManager) {
+    public AsyncDataStore(String collectionName, Class<T> myClass, AbstractClient client, StoreType storeType, NetworkManager<T> networkManager) {
         super(client, collectionName, myClass, storeType, networkManager);
         loadMethodMap();
     }
 
-    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType) {
+    public static <T extends GenericJson> AsyncDataStore<T> collection(String collection, Class<T> itemType, StoreType storeType) {
         return collection(collection, itemType, storeType, false);
     }
 
-    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet) {
+    public static <T extends GenericJson> AsyncDataStore<T> collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet) {
         return collection(collection, itemType, storeType, deltaSet, AbstractClient.sharedInstance());
     }
 
-    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client) {
+    public static <T extends GenericJson> AsyncDataStore<T> collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client) {
         return collection(collection, itemType, storeType, deltaSet, client, "kinvey");
     }
 
-    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client, String tag) {
+    public static <T extends GenericJson> AsyncDataStore<T> collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client, String tag) {
         String key = createKey(itemType, tag, storeType);
         if (dataStoreHashMap == null) {
             dataStoreHashMap = new HashMap<>();
         }
         dataStore = dataStoreHashMap.get(key);
         if (dataStore == null) {
-            dataStore = new AsyncDataStore(collection, itemType, client, storeType);
+            dataStore = new AsyncDataStore<T>(collection, itemType, client, storeType);
             dataStoreHashMap.put(key, dataStore);
         }
         return dataStore;
