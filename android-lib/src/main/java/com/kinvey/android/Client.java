@@ -111,8 +111,7 @@ public class Client extends AbstractClient {
     private RealmCacheManager cacheManager;
     
     
-    private static Client _sharedInstance;
-    
+
     /**
      * Protected constructor.  Public AbstractClient.Builder class is used to construct the AbstractClient, so this method shouldn't be
      * called directly.
@@ -134,15 +133,11 @@ public class Client extends AbstractClient {
         super(transport, httpRequestInitializer, rootUrl, servicePath, objectParser, kinveyRequestInitializer, store,
                 requestPolicy);
         Logger.init(new AndroidLogger());
-        _sharedInstance = this;
         this.context = context;
         cacheManager = new RealmCacheManager(this);
         syncCacheManager = new RealmCacheManager("sync_", this);
     }
 
-    public static Client sharedInstance(){
-    	return _sharedInstance;
-    }
 
 
 
@@ -171,10 +166,10 @@ public class Client extends AbstractClient {
      * @param <T> Generic of type {@link com.google.api.client.json.GenericJson} of same type as myClass
      * @return Instance of {@link com.kinvey.java.store.DataStore} for getStoreTypethe defined collection
      */
-    public <T extends GenericJson> AsyncDataStore<T> dataStore(String collectionName, Class<T> myClass, StoreType storeType) {
+/*    public <T extends GenericJson> AsyncDataStore<T> dataStore(String collectionName, Class<T> myClass, StoreType storeType) {
         return new AsyncDataStore(collectionName, myClass, this, storeType);
 
-    }
+    }*/
 
     /**
      * LinkedDataStore factory method

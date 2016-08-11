@@ -24,6 +24,7 @@ import android.webkit.WebView;
 
 import com.kinvey.android.Client;
 import com.kinvey.android.R;
+import com.kinvey.android.store.AbstractAsyncUserStore;
 
 /***
  * Provides a WebView for easy logging into MIC.
@@ -62,7 +63,7 @@ public class MICLoginActivity extends Activity {
     public void onNewIntent(Intent intent){
 
         super.onNewIntent(intent);
-        Client.sharedInstance().userStore().onOAuthCallbackRecieved(intent);
+        ((AbstractAsyncUserStore)Client.sharedInstance().userStore()).onOAuthCallbackRecieved(intent);
         this.finish();
     }
 }

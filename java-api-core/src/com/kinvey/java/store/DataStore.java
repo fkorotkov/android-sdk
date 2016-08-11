@@ -17,6 +17,8 @@
 package com.kinvey.java.store;
 
 import com.google.api.client.json.GenericJson;
+import com.google.common.base.Strings;
+import com.google.dexmaker.dx.dex.file.ItemType;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.Query;
 import com.kinvey.java.cache.ICache;
@@ -37,6 +39,7 @@ import com.kinvey.java.store.requests.data.read.ReadQueryRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -49,7 +52,8 @@ public class DataStore<T extends GenericJson> {
     private ICache<T> cache;
     NetworkManager<T> networkManager;
     private String collectionName;
-
+    private static HashMap<String, DataStore> dataStoreHashMap;
+    private static DataStore dataStore;
 
 
 
@@ -73,6 +77,36 @@ public class DataStore<T extends GenericJson> {
         cache = client.getCacheManager().getCache(collection, itemType, storeType.ttl);
         this.networkManager = networkManager;
         this.collectionName = collection;
+    }
+
+    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType) {
+        return collection(collection, itemType, storeType, false);
+    }
+
+    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet) {
+        return collection(collection, itemType, storeType, deltaSet, AbstractClient.sharedInstance());
+    }
+
+    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client) {
+        return collection(collection, itemType, storeType, deltaSet, client, "kinvey");
+    }
+
+    public static <T extends GenericJson> DataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client, String tag) {
+        String key = createKey(itemType, tag, storeType);
+        if (dataStoreHashMap == null) {
+            dataStoreHashMap = new HashMap<>();
+        }
+        dataStore = dataStoreHashMap.get(key);
+        if (dataStore == null) {
+            dataStore = new DataStore<T>(client, collection, itemType, storeType);
+            dataStoreHashMap.put(key, dataStore);
+        }
+        return dataStore;
+    }
+
+    private static <T> String createKey(Class<T> itemType, String tag, StoreType storeType) {
+        String key = itemType.getName().concat(tag).concat(storeType.name());
+        return key;
     }
 
     /**

@@ -50,7 +50,7 @@ import java.util.List;
  * Wraps the {@link NetworkManager} public methods in asynchronous functionality using native Android AsyncTask.
  * <p/>
  * <p>
- * This functionality can be accessed through the {@link Client#dataStore convenience method.  DataStore
+ * This functionality can be accessed through the {@link Client# dataStore convenience method.  DataStore
  * gets and saves and sync entities that extend {@link com.google.api.client.json.GenericJson}.  A class that extends GenericJson
  * can map class members to KinveyCollection properties using {@link com.google.api.client.util.Key} attributes.  For example,
  * the following will map a string "city" to a Kinvey collection attributed named "city":
@@ -131,11 +131,8 @@ public class AsyncDataStore<T extends GenericJson> extends DataStore<T> {
     private static final String KEY_AVERAGE = "KEY_AVERAGE";*/
 
     private static Map<String, Method> methodMap;
-
-
-
-
-
+    private static AsyncDataStore dataStore;
+    private static HashMap<String, AsyncDataStore> dataStoreHashMap;
 
 
     /** Constructor to instantiate the NetworkManager class.
@@ -156,6 +153,37 @@ public class AsyncDataStore<T extends GenericJson> extends DataStore<T> {
     public AsyncDataStore(String collectionName, Class myClass, AbstractClient client, StoreType storeType, NetworkManager<T> networkManager) {
         super(client, collectionName, myClass, storeType, networkManager);
         loadMethodMap();
+    }
+
+    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType) {
+        return collection(collection, itemType, storeType, false);
+    }
+
+    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet) {
+        return collection(collection, itemType, storeType, deltaSet, AbstractClient.sharedInstance());
+    }
+
+    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client) {
+        return collection(collection, itemType, storeType, deltaSet, client, "kinvey");
+    }
+
+    public static <T extends GenericJson> AsyncDataStore collection(String collection, Class<T> itemType, StoreType storeType, boolean deltaSet, AbstractClient client, String tag) {
+        String key = createKey(itemType, tag, storeType);
+        if (dataStoreHashMap == null) {
+            dataStoreHashMap = new HashMap<>();
+        }
+        dataStore = dataStoreHashMap.get(key);
+        if (dataStore == null) {
+            dataStore = new AsyncDataStore(collection, itemType, client, storeType);
+            dataStoreHashMap.put(key, dataStore);
+        }
+        return dataStore;
+
+    }
+
+    private static <T> String createKey(Class<T> itemType, String tag, StoreType storeType) {
+        String key = itemType.getName().concat(tag).concat(storeType.name());
+        return key;
     }
 
     private void loadMethodMap(){

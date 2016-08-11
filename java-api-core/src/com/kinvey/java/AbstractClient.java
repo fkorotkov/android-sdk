@@ -83,6 +83,8 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
     
     private GenericData customRequestProperties = new GenericData();
 
+    private static AbstractClient _sharedInstance;
+
     public void setClientAppVersion(String appVersion){
     	this.clientAppVersion = appVersion;	
     }
@@ -134,8 +136,12 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
         super(transport, httpRequestInitializer, rootUrl, servicePath,
                 objectParser, kinveyRequestInitializer, requestPolicy);
         this.store = store;
+        _sharedInstance = this;
     }
 
+    public static AbstractClient sharedInstance(){
+        return _sharedInstance;
+    }
 
     public Query query() {
         return new Query(new MongoQueryFilter.MongoQueryFilterBuilder());
@@ -464,10 +470,10 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
 
     public abstract ICacheManager getCacheManager();
 
-    public <T extends GenericJson> DataStore<T> dataStore(String collection,
+/*    public <T extends GenericJson> DataStore<T> dataStore(String collection,
                                                           Class<T> clazz, StoreType storeType){
         return new DataStore<T>(this, collection, clazz, storeType);
-    }
+    }*/
 
     public abstract String getFileCacheFolder();
 
