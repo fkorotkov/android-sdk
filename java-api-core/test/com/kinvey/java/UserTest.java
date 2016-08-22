@@ -23,7 +23,6 @@ import com.kinvey.java.auth.KinveyAuthRequest;
 import com.kinvey.java.auth.ThirdPartyIdentity;
 import com.kinvey.java.core.KinveyMockUnitTest;
 import com.kinvey.java.dto.User;
-import com.kinvey.java.store.UserStore;
 import com.kinvey.java.store.requests.user.Delete;
 import com.kinvey.java.store.requests.user.EmailVerification;
 import com.kinvey.java.store.requests.user.GetMICAccessToken;
@@ -39,15 +38,15 @@ import com.kinvey.java.testing.MockKinveyAuthRequest;
  */
 public class UserTest extends KinveyMockUnitTest {
 
-    private UserStore<User> currentUser;
+    private User<User> currentUser;
 
     private void initializeUser() {
-        currentUser = new UserStore<User>(getClient(), User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
+        currentUser = new User<User>(getClient(), com.kinvey.java.dto.User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
                 getClient().getJsonFactory(), "mockAppKey","mockAppSecret",null));
     }
 
     public void testInitializeUser() {
-        UserStore<User> user = new UserStore<User>(getClient(), User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
+        User<User> user = new User<User>(getClient(), com.kinvey.java.dto.User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
                 getClient().getJsonFactory(), "mockAppKey","mockAppSecret",null));
         assertNotNull(user);
         assertEquals(getClient(),user.getClient());
@@ -56,7 +55,7 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testInitializeUserNullClient() {
         try {
-            UserStore<User> user = new UserStore<User>(null, User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
+            User<User> user = new User<User>(null, com.kinvey.java.dto.User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
                     getClient().getJsonFactory(), "mockAppKey","mockAppSecret",null));
             fail("NullPointerException should be thrown");
         } catch (NullPointerException ex) {}
@@ -64,7 +63,7 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testInitializeNoBuilder() {
         try {
-            UserStore<User> user = new UserStore<User>(getClient(), User.class, null);
+            User<User> user = new User<User>(getClient(), com.kinvey.java.dto.User.class, null);
             fail("NullPointerException should be thrown");
         } catch (NullPointerException ex) {}
     }
@@ -114,17 +113,17 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testDeleteHardDeleteTrue() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         Delete del = currentUser.deleteBlocking(true);
-        assertEquals(currentUser.getCurrentUser().getId(), del.get("userID").toString());
+        assertEquals(currentUser.getId(), del.get("userID").toString());
         assertEquals(true, del.get("hard"));
     }
 
     public void testDeleteHardDeleteFalse() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         Delete del = currentUser.deleteBlocking(false);
-        assertEquals(currentUser.getCurrentUser().getId(),del.get("userID").toString());
+        assertEquals(currentUser.getId(),del.get("userID").toString());
         assertEquals(false,del.get("hard"));
         assertEquals("DELETE",del.getRequestMethod());
     }
@@ -139,9 +138,9 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testRetrieve() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         Retrieve ret = currentUser.retrieveBlocking();
-        assertEquals(currentUser.getCurrentUser().getId(),ret.get("userID").toString());
+        assertEquals(currentUser.getId(),ret.get("userID").toString());
         assertEquals("GET", ret.getRequestMethod());
     }
 
@@ -155,9 +154,9 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testUpdate() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         Update update = currentUser.updateBlocking();
-        assertEquals(currentUser.getCurrentUser().getId(),update.get("userID").toString());
+        assertEquals(currentUser.getId(),update.get("userID").toString());
         assertEquals("PUT", update.getRequestMethod());
     }
 
@@ -171,10 +170,10 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testResetPassword() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
-        currentUser.getCurrentUser().setUsername("test");
-        ResetPassword pwd = currentUser.resetPasswordBlocking(currentUser.getCurrentUser().getUsername());
-        assertEquals(currentUser.getCurrentUser().getUsername(),pwd.get("userID").toString());
+        currentUser.setId("testUser");
+        currentUser.setUsername("test");
+        ResetPassword pwd = currentUser.resetPasswordBlocking(currentUser.getUsername());
+        assertEquals(currentUser.getUsername(),pwd.get("userID").toString());
         assertEquals("POST", pwd.getRequestMethod());
     }
 
@@ -188,9 +187,9 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testEmailVerification() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         EmailVerification email = currentUser.sendEmailVerificationBlocking();
-        assertEquals(currentUser.getCurrentUser().getId(),email.get("userID").toString());
+        assertEquals(currentUser.getId(),email.get("userID").toString());
         assertEquals("POST", email.getRequestMethod());
     }
 
@@ -204,7 +203,7 @@ public class UserTest extends KinveyMockUnitTest {
     
     public void testUserCustomVersion() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
     	currentUser.getClient().setClientAppVersion("1.2.3");
     	Retrieve request = currentUser.retrieveBlocking();
     	Object header = request.getRequestHeaders().get("X-Kinvey-Client-App-Version");
@@ -213,7 +212,7 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testUserCustomVesionAsNumber() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         currentUser.getClient().setClientAppVersion(1, 2, 3);
         Retrieve request = currentUser.retrieveBlocking();
         Object header = request.getRequestHeaders().get("X-Kinvey-Client-App-Version");
@@ -223,7 +222,7 @@ public class UserTest extends KinveyMockUnitTest {
     
     public void testUserCustomHeader() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
     	GenericJson custom = new GenericJson();
     	custom.put("First", 1);
     	custom.put("Second", "two");
@@ -236,7 +235,7 @@ public class UserTest extends KinveyMockUnitTest {
 
     public void testUserCustomHeaderOverload() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
 
         currentUser.getClient().setCustomRequestProperty("First", 1);
         currentUser.getClient().setCustomRequestProperty("Second", "two");
@@ -249,7 +248,7 @@ public class UserTest extends KinveyMockUnitTest {
     
     public void testUserCustomVersionNull() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
     	currentUser.getClient().setClientAppVersion(null);
     	Retrieve request = currentUser.retrieveBlocking();
     	Object header = request.getRequestHeaders().get("X-Kinvey-Client-App-Version");
@@ -258,7 +257,7 @@ public class UserTest extends KinveyMockUnitTest {
     
     public void testUserCustomHeaderNull() throws IOException {
         initializeUser();
-        currentUser.getCurrentUser().setId("testUser");
+        currentUser.setId("testUser");
         currentUser.getClient().clearCustomRequestProperties();
     	Retrieve request = currentUser.retrieveBlocking();
     	Object header = request.getRequestHeaders().get("X-Kinvey-Custom-Request-Properties");
@@ -267,22 +266,22 @@ public class UserTest extends KinveyMockUnitTest {
     
     public void testCustomMICBase() throws IOException{
     	initializeUser();
-    	getClient().userStore().setMICHostName("https://www.google.com");
+    	getClient().getUserInstance().setMICHostName("https://www.google.com");
     	
     	try{
-    		getClient().userStore().setMICHostName("http://www.google.com");
+    		getClient().getUserInstance().setMICHostName("http://www.google.com");
     		fail("Library should throw an exception when setting non https base url for MIC");
     	}catch(Exception e){}
 
 
     	
-    	GetMICAccessToken getToken = getClient().userStore().getMICToken("myCODE");
+    	GetMICAccessToken getToken = getClient().getUserInstance().getMICToken("myCODE");
     	assertEquals("https://www.google.com/oauth/token", getToken.buildHttpRequest().getUrl().toString());
     }
     
     public void testMICLoginWithAccessToken() throws IOException{
     	
-    	currentUser = new UserStore<>(getClient(new MockHttpForMIC()), User.class, new KinveyAuthRequest.Builder(new MockHttpForMIC(),
+    	currentUser = new User<>(getClient(new MockHttpForMIC()), User.class, new KinveyAuthRequest.Builder(new MockHttpForMIC(),
                 new GsonFactory(),"https://baas.kinvey.com",  "mockAppKey","mockAppSecret",null));
     	
     	GetMICAccessToken token = currentUser.getMICToken("MyToken");

@@ -18,7 +18,7 @@ package com.kinvey.java.store.requests.user;
 
 import com.google.api.client.util.Key;
 import com.kinvey.java.core.AbstractKinveyJsonClientRequest;
-import com.kinvey.java.store.UserStore;
+import com.kinvey.java.dto.User;
 
 /**
  * EmailVerification Request Class, extends AbstractKinveyJsonClientRequest<User>.  Constructs the HTTP request
@@ -27,13 +27,13 @@ import com.kinvey.java.store.UserStore;
 public final class EmailVerification extends AbstractKinveyJsonClientRequest<Void> {
     private static final String REST_PATH = "rpc/{appKey}/{userID}/user-email-verification-initiate";
 
-    private UserStore userStore;
+    private User user;
     @Key
     private String userID;
 
-    public EmailVerification(UserStore userStore, String userID) {
-        super(userStore.getClient(), "POST", REST_PATH, null, Void.class);
-        this.userStore = userStore;
+    public EmailVerification(User user, String userID) {
+        super(user.getClient(), "POST", REST_PATH, null, Void.class);
+        this.user = user;
         this.userID = userID;
         this.setRequireAppCredentials(true);
     }

@@ -3,7 +3,6 @@ package com.kinvey.java.auth;
 import com.kinvey.java.core.KinveyHeaders;
 import com.kinvey.java.core.KinveyMockUnitTest;
 import com.kinvey.java.dto.User;
-import com.kinvey.java.store.UserStore;
 import com.kinvey.java.testing.MockKinveyAuthRequest;
 
 import java.lang.reflect.Field;
@@ -13,21 +12,21 @@ import java.lang.reflect.Field;
  */
 public class KinveyAuthRequestTest extends KinveyMockUnitTest {
 
-    private UserStore<User> currentUser;
+    private User<User> currentUser;
 
     private void initializeUser() {
-        currentUser = new UserStore<>(getClient(), User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
+        currentUser = new User<>(getClient(), com.kinvey.java.dto.User.class, new MockKinveyAuthRequest.MockBuilder(getClient().getRequestFactory().getTransport(),
                 getClient().getJsonFactory(), "mockAppKey","mockAppSecret",null));
     }
 
     public void testHeaders() {
         initializeUser();
         try {
-            UserStore.LoginRequest login = currentUser.loginBlocking();
+            User.LoginRequest login = currentUser.loginBlocking();
 
             login.buildAuthRequest();
 
-            Field f = UserStore.LoginRequest.class.getDeclaredField("request");
+            Field f = User.LoginRequest.class.getDeclaredField("request");
             f.setAccessible(true);
             KinveyAuthRequest authRequest = (KinveyAuthRequest) f.get(login);
 

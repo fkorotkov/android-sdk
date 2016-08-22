@@ -19,7 +19,7 @@ package com.kinvey.java.store.requests.user;
 import com.google.api.client.util.Key;
 import com.google.gson.Gson;
 import com.kinvey.java.core.AbstractKinveyJsonClientRequest;
-import com.kinvey.java.store.UserStore;
+import com.kinvey.java.dto.User;
 
 import java.io.IOException;
 
@@ -30,29 +30,29 @@ import java.io.IOException;
 public final class Delete extends AbstractKinveyJsonClientRequest<Void> {
     private static final String REST_PATH = "user/{appKey}/{userID}?hard={hard}";
 
-    private UserStore userStore;
+    private User user;
     @Key
     private boolean hard = false;
 
     @Key
     private String userID;
 
-    public Delete(UserStore userStore, String userID, boolean hard) {
-        super(userStore.getClient(), "DELETE", REST_PATH, null, Void.class);
-        this.userStore = userStore;
+    public Delete(User user, String userID, boolean hard) {
+        super(user.getClient(), "DELETE", REST_PATH, null, Void.class);
+        this.user = user;
         this.userID = userID;
         this.hard = hard;
-        this.getRequestHeaders().put("X-Kinvey-Client-App-Version", userStore.getClientAppVersion());
-        if (userStore.getCustomRequestProperties() != null && !userStore.getCustomRequestProperties().isEmpty()){
-            this.getRequestHeaders().put("X-Kinvey-Custom-Request-Properties", new Gson().toJson(userStore.getCustomRequestProperties()) );
+        this.getRequestHeaders().put("X-Kinvey-Client-App-Version", user.getClientAppVersion());
+        if (user.getCustomRequestProperties() != null && !user.getCustomRequestProperties().isEmpty()){
+            this.getRequestHeaders().put("X-Kinvey-Custom-Request-Properties", new Gson().toJson(user.getCustomRequestProperties()) );
         }
     }
 
     @Override
     public Void execute() throws IOException {
         super.execute();
-        userStore.removeFromStore(userID);
-        userStore.logout();
+        user.removeFromStore(userID);
+        user.logout();
 
         return null;
     }

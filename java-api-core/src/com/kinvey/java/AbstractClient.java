@@ -40,14 +40,11 @@ import com.kinvey.java.core.AbstractKinveyClientRequest;
 import com.kinvey.java.core.AbstractKinveyJsonClient;
 import com.kinvey.java.core.KinveyClientRequestInitializer;
 import com.kinvey.java.dto.User;
-import com.kinvey.java.model.FileMetaData;
 import com.kinvey.java.network.NetworkFileManager;
-import com.kinvey.java.network.NetworkManager;
 import com.kinvey.java.query.MongoQueryFilter;
 import com.kinvey.java.store.DataStore;
 import com.kinvey.java.store.FileStore;
 import com.kinvey.java.store.StoreType;
-import com.kinvey.java.store.UserStore;
 import com.kinvey.java.sync.SyncManager;
 
 /**
@@ -67,7 +64,7 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
      */
     public static final String DEFAULT_SERVICE_PATH = "";
     
-    protected UserStore userStore;
+    protected User user;
     private CredentialStore store;
 
     /** used to synchronized access to the local api wrappers **/
@@ -77,7 +74,7 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
     private ArrayList<ClientExtension> extensions;
 
     /** Class to use for representing a User **/
-    private Class userModelClass = User.class;
+    private Class userModelClass = com.kinvey.java.dto.User.class;
     
     private String clientAppVersion = null;
     
@@ -147,23 +144,25 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
 
     //public abstract <T extends User> T user();
 
-    public <T extends User> UserStore<T> userStore(){
+    public <T extends com.kinvey.java.dto.User> User<T> getUserInstance(){
         synchronized (lock) {
-            if (userStore == null) {
+            if (user == null) {
                 String appKey = ((KinveyClientRequestInitializer) getKinveyRequestInitializer()).getAppKey();
                 String appSecret = ((KinveyClientRequestInitializer) getKinveyRequestInitializer()).getAppSecret();
 
-                userStore = new UserStore<T>(this, (Class<T>)getUserClass(), new KinveyAuthRequest.Builder(this.getRequestFactory().getTransport(),
+                user = new User<T>(this, (Class<T>)getUserClass(), new KinveyAuthRequest.Builder(this.getRequestFactory().getTransport(),
                         this.getJsonFactory(), this.getBaseUrl(), appKey, appSecret, null));
             }
 
-            return userStore;
+            return user;
         }
     }
 
+    public void removeUserInstance() {
+        user = null;
+    }
 
-
-    public <T extends User> Class<T> getUserClass(){
+    public <T extends com.kinvey.java.dto.User> Class<T> getUserClass(){
         return this.userModelClass;
     }
 
@@ -188,18 +187,18 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
         return true;
     }
 
-    protected void setCurrentUser(User user) {
+/*    protected void setCurrentUser(com.kinvey.java.dto.User user) {
 
         synchronized (lock) {
-            userStore().setCurrentUser(user);
+            getUserInstance().setCurrentUser(user);
         }
     }
 
-    protected User getCurrentUser() {
+    protected com.kinvey.java.dto.User getCurrentUser() {
         synchronized (lock) {
-            return userStore.getCurrentUser();
+            return user.getCurrentUser();
         }
-    }
+    }*/
 
     public CredentialStore getStore() {
         return store;
