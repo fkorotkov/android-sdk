@@ -47,7 +47,7 @@ import com.kinvey.android.push.GCMPush;
 import com.kinvey.android.store.AsyncDataStore;
 import com.kinvey.android.store.AsyncFileStore;
 import com.kinvey.android.store.AsyncLinkedDataStore;
-import com.kinvey.android.store.AsyncUserStore;
+import com.kinvey.android.store.AsyncUser;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.ClientExtension;
 import com.kinvey.java.Logger;
@@ -216,7 +216,7 @@ public class Client extends AbstractClient {
         this.getFileStore(StoreType.SYNC).clear();
         List<ClientExtension> extensions = getExtensions();
         for (ClientExtension e : extensions){
-            e.performLockdown(userStore().getCurrentUser().getId());
+            e.performLockdown(getUserInstance().getId());
         }
     }
 
@@ -356,8 +356,8 @@ public class Client extends AbstractClient {
     /**
      * User factory method
      * <p>
-     * Returns the instance of {@link com.kinvey.java.store.UserStore} that contains the current active user.  If no active user context
-     * has been established, the {@link com.kinvey.java.store.UserStore} object returned will be instantiated and empty.
+     * Returns the instance of {@link com.kinvey.java.store.User} that contains the current active user.  If no active user context
+     * has been established, the {@link com.kinvey.java.store.User} object returned will be instantiated and empty.
      * </p>
      * <p>
      * This method is thread-safe.
@@ -370,19 +370,19 @@ public class Client extends AbstractClient {
      }
      * </pre>
      * </p>
-     * @param <T> the type of the custom `User` class, which must extend {@link com.kinvey.java.store.UserStore}
-     * @return Instance of {@link com.kinvey.java.store.UserStore}
+     * @param <T> the type of the custom `User` class, which must extend {@link com.kinvey.java.store.User}
+     * @return Instance of {@link com.kinvey.java.store.User}
      */
     @Override
-    public <T extends User> AsyncUserStore<T> userStore(){
+    public <T extends User> AsyncUser<T> getUserInstance(){
         synchronized (lock) {
-            if (userStore == null) {
+            if (user == null) {
                 String appKey = ((KinveyClientRequestInitializer) getKinveyRequestInitializer()).getAppKey();
                 String appSecret = ((KinveyClientRequestInitializer) getKinveyRequestInitializer()).getAppSecret();
-                userStore = new AsyncUserStore<T>(this, (Class<T>)getUserClass(), new KinveyAuthRequest.Builder(this.getRequestFactory().getTransport(),
+                user = new AsyncUser<T>(this, (Class<T>)getUserClass(), new KinveyAuthRequest.Builder(this.getRequestFactory().getTransport(),
                         this.getJsonFactory(), this.getBaseUrl(), appKey, appSecret, null));
             }
-            return (AsyncUserStore<T>)userStore;
+            return (AsyncUser<T>) user;
         }
     }
 
@@ -683,10 +683,10 @@ public class Client extends AbstractClient {
 
             } catch (AndroidCredentialStoreException ex) {
             	Logger.ERROR("Credential store was in a corrupted state and had to be rebuilt");
-                client.setCurrentUser(null);
+//                client.setCurrentUser(null);
             } catch (IOException ex) {
             	Logger.ERROR("Credential store failed to load");
-                client.setCurrentUser(null);
+//                client.setCurrentUser(null);
             }
 
             //GCM explicitely enabled
@@ -702,10 +702,10 @@ public class Client extends AbstractClient {
             client.batchRate = this.batchRate;
             client.batchSize = this.batchSize;
             if (this.MICVersion != null){
-                client.userStore().setMICApiVersion(this.MICVersion);
+                client.getUserInstance().setMICApiVersion(this.MICVersion);
             }
             if(this.MICBaseURL != null){
-                client.userStore().setMICHostName(this.MICBaseURL);
+                client.getUserInstance().setMICHostName(this.MICBaseURL);
             }
 
             return client;
@@ -826,7 +826,7 @@ public class Client extends AbstractClient {
         private Credential retrieveUserFromCredentialStore(Client client)
                 throws AndroidCredentialStoreException, IOException {
             Credential credential = null;
-            if (!client.userStore().isUserLoggedIn()) {
+            if (!client.getUserInstance().isUserLoggedIn()) {
                 String userID = client.getClientUsers().getCurrentUser();
                 if (userID != null && !userID.equals("")) {
                     CredentialStore store = getCredentialStore();
@@ -844,9 +844,9 @@ public class Client extends AbstractClient {
         private void loginWithCredential(final Client client, Credential credential) {
             getKinveyClientRequestInitializer().setCredential(credential);
             try {
-                client.userStore().login(credential).execute();
+                client.getUserInstance().login(credential).execute();
             } catch (IOException ex) {
-            	Logger.ERROR("Could not retrieve user Credentials");
+                Logger.ERROR("Could not retrieve user Credentials");
             }
             new AsyncTask<Void, Void, User>(){
 
@@ -855,12 +855,12 @@ public class Client extends AbstractClient {
                 protected User doInBackground(Void... voids) {
                     User result = null;
                     try{
-                        result = client.userStore().retrieveMetadataBlocking();
-                        client.setCurrentUser(result);
+                        result = client.getUserInstance().retrieveMetadataBlocking();
+//                        client.setCurrentUser(result);
                     }catch (Exception error){
                         this.error = error;
                         if ((error instanceof HttpResponseException)) {
-                            client.userStore().logout().execute();
+                            client.getUserInstance().logout().execute();
                         }
                     }
                     return result;

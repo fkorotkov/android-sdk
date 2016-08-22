@@ -19,7 +19,6 @@ package com.kinvey.android.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.webkit.WebView;
 
 import com.kinvey.android.Client;
@@ -62,7 +61,7 @@ public class MICLoginActivity extends Activity {
     public void onNewIntent(Intent intent){
 
         super.onNewIntent(intent);
-        Client.sharedInstance().userStore().onOAuthCallbackRecieved(intent);
+        Client.sharedInstance().getUserInstance().onOAuthCallbackRecieved(intent);
         this.finish();
     }
 }
