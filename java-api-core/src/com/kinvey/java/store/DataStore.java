@@ -40,7 +40,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * Class for getting and saving and syncing entities that extend {@link com.google.api.client.json.GenericJson}.
+ * A class that extends GenericJson can map class members to KinveyCollection properties
+ * using {@link com.google.api.client.util.Key} attributes.
+ */
 public class DataStore<T extends GenericJson> {
 
     protected final AbstractClient client;
@@ -181,7 +185,7 @@ public class DataStore<T extends GenericJson> {
     }
 
     /**
-     * Remove object from from given collection with given id
+     * Remove object from given collection with given id
      * @param id id of object to be deleted
      * @return count of object that was deleted
      * @throws IOException
@@ -257,6 +261,9 @@ public class DataStore<T extends GenericJson> {
         pullBlocking(query);
     }
 
+    /**
+     * Clear collection
+     */
     public void purge(){
         Preconditions.checkNotNull(client, "client must not be null.");
         Preconditions.checkArgument(client.isInitialize(), "client must be initialized.");
@@ -282,10 +289,18 @@ public class DataStore<T extends GenericJson> {
         return client;
     }
 
+    /**
+     * Getter for storeItemType
+     * @return Class of used item
+     */
     public Class<T> getCurrentClass() {
         return storeItemType;
     }
 
+    /**
+     * Getter for collectionName
+     * @return String name of collection
+     */
     public String getCollectionName() {
         return collectionName;
     }

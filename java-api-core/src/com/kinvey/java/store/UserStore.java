@@ -10,33 +10,91 @@ import com.kinvey.java.dto.User;
 
 import java.io.IOException;
 
+/**
+ * Class for static and synchronous call UserStoreRequestManager's methods.
+ * Methods of this class are used for signUp, login, retrieve, logout and other.
+ *
+ */
 public abstract class UserStore {
 
+    /**
+     * Create new Kinvey user with entered credentials.
+     * Synchronous static method.
+     *
+     * @param userId the id of user
+     * @param  password password of user which will be created
+     * @param client Kinvey client instance
+     * @return User object which is created
+     * @throws IOException
+    */
     public static User signUp(String userId, String password, AbstractClient client) throws IOException {
         return new UserStoreRequestManager(client, createBuilder(client)).createBlocking(userId, password).execute();
     }
 
-    /*Deletes a 'User'*/
+    /**
+     * Delete current Kinvey user.
+     * Synchronous static method.
+     *
+     * @param isHard if true, physically deletes the user. If false, marks user as inactive.
+     * @param client Kinvey client instance
+     * @throws IOException
+     */
     public static  void destroy(boolean isHard, AbstractClient client) throws IOException {
         new UserStoreRequestManager(client, createBuilder(client)).deleteBlocking(isHard).execute();
     }
 
+    /**
+     * Login with Kinvey user and password.
+     * If user does not exist, returns a error response.
+     * Synchronous static method.
+     *
+     * @param username userID of Kinvey User
+     * @param password password of Kinvey user
+     * @return User object
+     * @throws IOException
+     */
     public static  User login(String username, String password,
                               AbstractClient client) throws IOException {
         return new UserStoreRequestManager(client, createBuilder(client))
                 .loginBlocking(username, password).execute();
     }
 
+    /**
+     * Login with the implicit user.  If implicit user does not exist, the user is created.
+     * After calling this method, the application should retrieve and store the userID using getId()
+     * Synchronous static method.
+     *
+     * @return User object
+     * @throws IOException
+     */
     public static  User login(AbstractClient client) throws IOException {
         return new UserStoreRequestManager(client, createBuilder(client))
                 .loginBlocking().execute();
     }
 
+    /**
+     * Login to Kinvey services using Facebook access token obtained through OAuth2.
+     * If the user does not exist in the Kinvey service, the user will be created.
+     * Synchronous static method.
+     *
+     * @param accessToken Facebook-generated access token.
+     * @return User object
+     * @throws IOException
+     */
     public static User loginFacebook(String accessToken, AbstractClient client) throws IOException {
         return new UserStoreRequestManager(client, createBuilder(client))
                 .loginFacebookBlocking(accessToken).execute();
     }
 
+    /**
+     * Login to Kinvey services using Google access token obtained through OAuth2.
+     * If the user does not exist in the Kinvey service, the user will be created.
+     * Synchronous static method.
+     *
+     * @param accessToken Google-generated access token
+     * @return User object
+     * @throws IOException
+     */
     public static User loginGoogle(String accessToken, AbstractClient client) throws IOException {
         return new UserStoreRequestManager(client, createBuilder(client))
                 .loginGoogleBlocking(accessToken).execute();

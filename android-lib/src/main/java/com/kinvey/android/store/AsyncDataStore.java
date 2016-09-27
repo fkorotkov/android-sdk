@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Wraps the {@link NetworkManager} public methods in asynchronous functionality using native Android AsyncTask.
+ * Wraps the {@link DataStore} public methods in asynchronous functionality using native Android AsyncTask.
  * <p/>
  * <p>
  * This functionality can be accessed through the {@link Client#dataStore convenience method.  DataStore
@@ -137,10 +137,11 @@ public class AsyncDataStore<T extends GenericJson> extends DataStore<T> {
 
 
     /**
-     * Constructor to instantiate the NetworkManager class.
-     *
+     * Constructor to instantiate the AsyncDataStore class.
      * @param collectionName Name of the appData collection
-     * @param myClass        Class Type to marshall data between.
+     * @param myClass Class Type to marshall data between.
+     * @param client Kinvey client instance to work with
+     * @param storeType type of storage that client want to use
      */
     public AsyncDataStore(String collectionName, Class myClass, AbstractClient client, StoreType storeType) {
         super(client, collectionName, myClass, storeType);
@@ -148,16 +149,21 @@ public class AsyncDataStore<T extends GenericJson> extends DataStore<T> {
     }
 
     /**
-     * Constructor to instantiate the NetworkManager class.
-     *
+     * Constructor to instantiate the AsyncDataStore class.
      * @param collectionName Name of the appData collection
-     * @param myClass        Class Type to marshall data between.
+     * @param myClass Class Type to marshall data between.
+     * @param client Kinvey client instance to work with
+     * @param storeType type of storage that client want to use
+     * @param networkManager manager appData access to the Kinvey backend.
      */
     public AsyncDataStore(String collectionName, Class myClass, AbstractClient client, StoreType storeType, NetworkManager<T> networkManager) {
         super(client, collectionName, myClass, storeType, networkManager);
         loadMethodMap();
     }
 
+    /**
+     * Loading methods which can be used for work with DataStore
+     */
     private void loadMethodMap() {
         Map<String, Method> tempMap = new HashMap<String, Method>();
         try {
