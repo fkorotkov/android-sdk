@@ -55,6 +55,11 @@ import java.util.Map;
 /**
  * Created by Prots on 2/12/16.
  */
+
+/**
+ * Class for initiating requests for user managing
+ *
+ */
 public class UserStoreRequestManager {
 
 
@@ -471,6 +476,13 @@ public class UserStoreRequestManager {
         return update;
     }
 
+    /**
+     * Change password for current user's profile
+     *
+     * @param newPassword the password to update
+     * @return an Update request ready to be executed
+     * @throws IOException
+     */
     public Update changePassword(String newPassword) throws IOException{
         Preconditions.checkNotNull(client.getUser(), "currentUser must not be null");
         Preconditions.checkNotNull(client.getUser().getId(), "currentUser ID must not be null");
@@ -481,6 +493,13 @@ public class UserStoreRequestManager {
         return update;
     }
 
+    /**
+     * Initiates an UserExists request for check user existing by username
+     *
+     * @param username the userName of Kinvey user
+     * @return a UserExists request ready to execute
+     * @throws IOException
+     */
     public UserExists exists(String username) throws IOException {
         Preconditions.checkNotNull(username, "username must not be null");
         Username name = new Username();
@@ -490,6 +509,13 @@ public class UserStoreRequestManager {
         return userExists;
     }
 
+    /**
+     * Initiates an Update request for getting updated user
+     *
+     * @param userId the userId of Kinvey user
+     * @return a Update request ready to execute
+     * @throws IOException
+     */
     public Update getUser(String userId) throws IOException {
         Preconditions.checkNotNull(userId, "username must not be null");
         Update update = new Update(this, userId);
@@ -497,6 +523,12 @@ public class UserStoreRequestManager {
         return update;
     }
 
+    /**
+     * Initiates an Update request for saving current user's data
+     *
+     * @return a Update request ready to execute
+     * @throws IOException
+     */
     public Update save() throws IOException {
         return updateBlocking();
     }
@@ -552,6 +584,13 @@ public class UserStoreRequestManager {
         return lockdown;
     }
 
+    /**
+     * Initiates an ForgotUsername request for the user which was found by email
+     *
+     * @param email the email for finding user
+     * @return a ForgotUsername request ready to execute
+     * @throws IOException
+     */
     public ForgotUsername forgotUsername(String email) throws IOException {
         Preconditions.checkNotNull(email, "email must not be null");
         Email userEmail = new Email();
