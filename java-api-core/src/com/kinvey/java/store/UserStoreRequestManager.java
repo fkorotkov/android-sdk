@@ -52,13 +52,23 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Prots on 2/12/16.
- */
 
 /**
- * Class for initiating requests for user managing
+ * This class is used for creating and  initiating requests for user managing.
+ * Methods of this class are executed synchronously.
+ * <p/>
  *
+ * <p>
+ * Entity use sample:
+ * <pre>
+ * {@code
+ *     UserStoreRequestManager userStoreRequestManager = new UserStoreRequestManager(client, createBuilder(client));
+ *     userStoreRequestManager.changePassword(password).execute()
+ * }
+ * </pre>
+ * </p>
+ * <p/>
+ * @author Prots
  */
 public class UserStoreRequestManager {
 

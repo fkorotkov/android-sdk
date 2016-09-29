@@ -11,9 +11,20 @@ import com.kinvey.java.dto.User;
 import java.io.IOException;
 
 /**
- * Class for static and synchronous call UserStoreRequestManager's methods.
- * Methods of this class are used for user managing.
+ * This abstract class is used for execution requests for user managing.
+ * Methods of this class are executed synchronously. This methods are static.
+ * <p/>
  *
+ * <p>
+ * Entity use sample:
+ * <pre>
+ * {@code
+ *     UserStore.login(credential, client);
+ * }
+ * </pre>
+ * </p>
+ * <p/>
+ * @author Prots
  */
 public abstract class UserStore {
 
