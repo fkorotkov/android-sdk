@@ -16,7 +16,7 @@ import java.io.IOException;
  * <p/>
  *
  * <p>
- * Entity use sample:
+ * Entity Set sample:
  * <pre>
  * {@code
  *     UserStore.login(credential, client);
@@ -157,8 +157,8 @@ public abstract class UserStore {
      * Login to Kinvey Services
      * Synchronous static method.
      *
-     * @param accessToken
-     * @param refreshToken
+     * @param accessToken accessToken
+     * @param refreshToken refreshToken
      * @param client Kinvey client instance
      * @return User object
      * @throws IOException
@@ -190,7 +190,7 @@ public abstract class UserStore {
      * Login to Kinvey Services using Mobile Identity Connect
      * Synchronous static method.
      *
-     * @param authToken
+     * @param authToken authToken
      * @param client Kinvey client instance
      * @return User object
      * @throws IOException

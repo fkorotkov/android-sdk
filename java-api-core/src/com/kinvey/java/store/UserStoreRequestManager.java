@@ -59,7 +59,7 @@ import java.util.Map;
  * <p/>
  *
  * <p>
- * Entity use sample:
+ * Entity Set sample:
  * <pre>
  * {@code
  *     UserStoreRequestManager userStoreRequestManager = new UserStoreRequestManager(client, createBuilder(client));
@@ -79,7 +79,9 @@ public class UserStoreRequestManager {
         return builder;
     }
 
-
+    /**
+     * Enum for identify which login type is using for authentication in Kinvey's Services.
+     */
     public enum LoginType {
         IMPLICIT,
         KINVEY,
