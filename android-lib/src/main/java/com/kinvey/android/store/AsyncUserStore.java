@@ -642,7 +642,7 @@ public class AsyncUserStore {
         String client_id;
 
         /**
-         * Constructor to instantiate the Login class.
+         * Constructor to instantiate the Login request.
          *
          * @param client Kinvey client instance
          * @param client {@link KinveyClientCallback}
@@ -655,7 +655,7 @@ public class AsyncUserStore {
         }
 
         /**
-         * Constructor to instantiate the Login class using Kinvey's credentials.
+         * Constructor to instantiate the Login request using Kinvey's credentials.
          *
          * @param username User's name
          * @param password User's password
@@ -672,10 +672,11 @@ public class AsyncUserStore {
         }
 
         /**
-         * Constructor to instantiate the Login class using Facebook access token.
+         * Constructor to instantiate the Login request using Facebook access token.
          *
          * @param accessToken Facebook access token obtained through OAuth2
          * @param type {@link com.kinvey.java.store.UserStoreRequestManager.LoginType} Enum for identify which login type is using for authentication
+         * @param client Kinvey client instance
          * @param callback {@link KinveyClientCallback}
          */
         private Login(String accessToken, UserStoreRequestManager.LoginType type, AbstractClient client, KinveyClientCallback callback) {
@@ -687,11 +688,12 @@ public class AsyncUserStore {
         }
 
         /**
-         * Constructor to instantiate the Login class using AuthLink access token.
+         * Constructor to instantiate the Login request using AuthLink access token.
          *
          * @param accessToken AuthLink generated accessToken
          * @param refreshToken AuthLink generated  refreshToken
          * @param type {@link com.kinvey.java.store.UserStoreRequestManager.LoginType} Enum for identify which login type is using for authentication
+         * @param client Kinvey client instance
          * @param callback {@link KinveyClientCallback}
          */
         private Login(String accessToken, String refreshToken, UserStoreRequestManager.LoginType type, AbstractClient client, KinveyClientCallback callback) {
@@ -699,18 +701,18 @@ public class AsyncUserStore {
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
             this.type = type;
-            
             this.client = client;
         }
 
         /**
-         * Constructor to instantiate the Login class using LinkedIn access token.
+         * Constructor to instantiate the Login request using LinkedIn access token.
          *
          * @param accessToken LinkedIn generated access token
          * @param accessSecret LinkedIn generated access secret
          * @param consumerKey LinkedIn generated consumer key
          * @param consumerSecret LinkedIn generated consumer secret
          * @param type {@link com.kinvey.java.store.UserStoreRequestManager.LoginType} Enum for identify which login type is using for authentication
+         * @param client Kinvey client instance
          * @param callback {@link KinveyClientCallback}
          */
         private Login(String accessToken, String accessSecret, String consumerKey, String consumerSecret, AbstractClient client,
@@ -721,9 +723,20 @@ public class AsyncUserStore {
             this.consumerKey = consumerKey;
             this.consumerSecret = consumerSecret;
             this.type=type;
+            this.client = client;
         }
 
         //TODO edwardf method signature is ambiguous with above method if this one also took a login type, so hardcoded to salesforce.
+        /**
+         * Method signature is ambiguous with above method if this one also took a login type, so hardcoded to salesforce.
+         *
+         * @param accessToken access token
+         * @param clientID Salesforce clientID
+         * @param refresh refresh
+         * @param id Salesforce id
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback}
+         */
         private Login(String accessToken, String clientID, String refresh, String id, AbstractClient client, KinveyClientCallback callback){
             super(callback);
             this.accessToken = accessToken;
@@ -735,14 +748,23 @@ public class AsyncUserStore {
             this.type = UserStoreRequestManager.LoginType.SALESFORCE;
         }
 
+        /**
+         * Constructor to instantiate the Login request using Kinvey user's credential.
+         *
+         * @param credential Kinvey user's credential
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback}
+         */
         private Login(Credential credential, AbstractClient client, KinveyClientCallback callback) {
             super(callback);
             this.credential = credential;
-            
             this.client = client;
             this.type = UserStoreRequestManager.LoginType.CREDENTIALSTORE;
         }
 
+        /**
+         * Async execute UserStore's synchronous Login request
+         */
         @Override
         protected User executeAsync() throws IOException {
             switch(this.type) {
@@ -771,12 +793,33 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Create asynchronously Create user request using synchronous UserStore's method UserStore.signUp
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<User>} for returning User
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new Create(username, password, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class Create extends AsyncClientRequest<User> {
         String username;
         String password;
         private final AbstractClient client;
-        
 
+        /**
+         * Constructor to instantiate the Create request using user's name and password.
+         *
+         * @param username user's name for creating new user
+         * @param password user's password for creating new user
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback<User>}
+         */
         private Create(String username, String password, AbstractClient client, KinveyClientCallback<User> callback) {
             super(callback);
             this.username=username;
@@ -785,24 +828,49 @@ public class AsyncUserStore {
             
         }
 
+        /**
+         * Async execute UserStore's synchronous Create request
+         */
         @Override
         protected User executeAsync() throws IOException {
             return UserStore.signUp(username, password, client);
         }
     }
 
+    /**
+     * Create asynchronously Delete user request using synchronous UserStore's method  UserStore.destroy
+     * <p/>
+     * Methods in this API use either {@link KinveyUserDeleteCallback} for returning response's status
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new Delete(isHard, client,callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class Delete extends AsyncClientRequest<Void> {
         boolean hardDelete;
         private final AbstractClient client;
-        
 
+        /**
+         * Constructor to instantiate the Delete request for deleting current user.
+         *
+         * @param hardDelete if true, physically deletes the user. If false, marks user as inactive.
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyUserDeleteCallback}
+         */
         private Delete(boolean hardDelete,  AbstractClient client, KinveyUserDeleteCallback callback) {
             super(callback);
             this.hardDelete = hardDelete;
             this.client = client;
-            
         }
 
+        /**
+         * Async execute UserStore's synchronous Delete request
+         */
         @Override
         protected Void executeAsync() throws IOException {
             UserStore.destroy(hardDelete, client);
@@ -810,20 +878,45 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Create asynchronously PostAccessToken request for Login using synchronous UserStore's method  UserStore.loginMobileIdentity.
+     * Used by the MIC login flow.
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<User>} for returning User
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new PostForAccessToken(client, MICRedirectURI, token, (KinveyClientCallback) MICCallback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class PostForAccessToken extends AsyncClientRequest<User>{
 
         private final AbstractClient client;
         private final String redirectURI;
         private String token;
 
+        /**
+         * Constructor to instantiate the PostAccessToken request for getting User
+         *
+         * @param redirectURI url for redirect after success login
+         * @param token the access code returned from the MIC Auth service
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback<User>}
+         */
         public PostForAccessToken(AbstractClient client, String redirectURI, String token, KinveyClientCallback<User> callback) {
             super(callback);
             this.client = client;
             this.redirectURI = redirectURI;
-
             this.token = token;
         }
 
+        /**
+         * Async execute UserStore's synchronous UserStore.loginMobileIdentity method
+         */
         @Override
         protected User executeAsync() throws IOException {
             UserStoreRequestManager requestManager = new UserStoreRequestManager(client, createBuilder(client));
@@ -840,6 +933,21 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Create asynchronously PostForTempURL request for Login with the MIC service, using the oauth flow.
+     * This request provides direct login, without rending a login page.
+     * <p/>
+     * Methods in this API use either {@link KinveyUserCallback<User>} for returning User
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new PostForTempURL(client, redirectURI, username, password, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class PostForTempURL extends AsyncClientRequest<User>{
 
         private final AbstractClient client;
@@ -847,6 +955,15 @@ public class AsyncUserStore {
         String username;
         String password;
 
+        /**
+         * Constructor to instantiate the PostForTempURL request for Login with the MIC service
+         *
+         * @param client Kinvey client instance
+         * @param redirectURI url for redirect after success login
+         * @param username user's name for login
+         * @param password user's password for login
+         * @param callback {@link KinveyUserCallback<User>}
+         */
         public PostForTempURL(AbstractClient client, String redirectURI, String username, String password, KinveyUserCallback<User> callback) {
             super(callback);
             this.client = client;
@@ -855,46 +972,72 @@ public class AsyncUserStore {
             this.password=password;
         }
 
+        /**
+         * Async execute PostForTempURL request
+         */
         @Override
         protected User executeAsync() throws IOException {
-
             UserStoreRequestManager requestManager = new UserStoreRequestManager(client, createBuilder(client));
             requestManager.setMICRedirectURI(redirectURI);
             GetMICTempURL micTempURL = requestManager.getMICTempURL();
             GenericJson tempResult = micTempURL.execute();
-
             String tempURL = tempResult.get("temp_login_uri").toString();
             LoginToTempURL loginToTempURL = requestManager.MICLoginToTempURL(username, password, tempURL);
             GenericJson accessResult = loginToTempURL.execute();
-
             User user = UserStore.loginMobileIdentity(accessResult.get("access_token").toString(), client);
-
-
             Credential currentCred = client.getStore().load(client.getUser().getId());
             currentCred.setRefreshToken(accessResult.get("refresh_token").toString());
             client.getStore().store(client.getUser().getId(), currentCred);
-
             return user;
         }
     }
 
-
+    /**
+     * Asynchronous request to refresh current user's data via the Kinvey back-end.
+     * <p/>
+     * Methods in this API use either {@link KinveyUserCallback<User>} for returning User
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new Retrieve(client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class Retrieve extends AsyncClientRequest<User> {
 
         private String[] resolves = null;
         private final AbstractClient client;
 
+        /**
+         * Constructor to instantiate the PostForTempURL request for returning User's data
+         *
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyUserCallback<User>}
+         */
         private Retrieve(AbstractClient client,KinveyClientCallback<User> callback) {
             super(callback);
             this.client = client;
         }
 
+        /**
+         * Constructor to instantiate the PostForTempURL request for returning User's data
+         *
+         * @param resolves an array of json keys maintaining KinveyReferences to be resolved
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyUserCallback<User>}
+         */
         private Retrieve(String[] resolves, AbstractClient client, KinveyClientCallback<User> callback){
             super(callback);
             this.resolves = resolves;
             this.client = client;
         }
 
+        /**
+         * Async execute Retrieve request
+         */
         @Override
         public User executeAsync() throws IOException {
             if (resolves == null){
@@ -905,28 +1048,57 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request to retrieve User objects via a Query.
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<User[]>} contains an array of queried users
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new RetrieveUserList(q, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class RetrieveUserList extends AsyncClientRequest<User[]> {
 
         private Query query = null;
         private String[] resolves = null;
         private final AbstractClient client;
-        
 
+        /**
+         * Constructor to instantiate the RetrieveUserList request
+         *
+         * @param query the query to execute defining users to return
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback<User[]>} contains an array of queried users
+         */
         private RetrieveUserList(Query query, AbstractClient client,KinveyClientCallback<User[]> callback){
             super(callback);
             this.query = query;
             this.client = client;
-            
         }
 
+        /**
+         * Constructor to instantiate the RetrieveUserList request
+         *
+         * @param query the query to execute defining users to return
+         * @param resolves an array of json keys maintaining KinveyReferences to be resolved
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback<User[]>} contains an array of queried users
+         */
         private RetrieveUserList(Query query, String[] resolves, AbstractClient client, KinveyClientCallback<User[]> callback){
             super(callback);
             this.query = query;
             this.resolves = resolves;
             this.client = client;
-            
         }
 
+        /**
+         * Async execute RetrieveUserList request
+         */
         @Override
         public User[] executeAsync() throws IOException {
             if (resolves == null){
@@ -937,40 +1109,97 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request for retrieving user metadata and updating the current user with the metadata
+     * using UserStore.convenience
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<User>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new RetrieveMetaData(client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class RetrieveMetaData extends AsyncClientRequest<User> {
 
         private final AbstractClient client;
-        
 
+        /**
+         * Constructor to instantiate the RetrieveMetaData request
+         *
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback<User>}
+         */
         private RetrieveMetaData(AbstractClient client, KinveyClientCallback<User> callback) {
             super(callback);
             this.client = client;
-            
         }
 
+        /**
+         * Async execute RetrieveMetaData request
+         */
         @Override
         protected User executeAsync() throws IOException {
             return UserStore.convenience(client);
         }
     }
 
+    /**
+     * Asynchronous request for saving/updating user metadata
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<User>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new Update(client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class Update extends AsyncClientRequest<User> {
 
         AbstractClient client = null;
-        
 
+        /**
+         * Constructor to instantiate the Update request
+         *
+         * @param client Kinvey client instance
+         * @param callback {@link KinveyClientCallback<User>}
+         */
         private Update(AbstractClient client, KinveyClientCallback<User> callback){
             super(callback);
             this.client = client;
-            
         }
 
+        /**
+         * Async execute Update request
+         */
         @Override
         protected User executeAsync() throws IOException {
             return UserStore.save(client);
         }
     }
 
+    /**
+     * Asynchronous request changing user's password
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<Void>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new ChangePassword(password, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class ChangePassword extends AsyncClientRequest<Void> {
 
         private final String password;
@@ -991,7 +1220,20 @@ public class AsyncUserStore {
         }
     }
 
-
+    /**
+     * Asynchronous request reset user's password using user's name or email.
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<Void>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new ResetPassword(usernameOrEmail, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class ResetPassword extends AsyncClientRequest<Void> {
 
         String usernameOrEmail;
@@ -1012,12 +1254,25 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request for check existing user using user's name .
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<Void>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new ExistsUser(username, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class ExistsUser extends AsyncClientRequest<Void> {
 
         String username;
         private final AbstractClient client;
         
-
         private ExistsUser(String username, AbstractClient client, KinveyClientCallback<Void> callback) {
             super(callback);
             this.username = username;
@@ -1032,6 +1287,20 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request for getting user using user's id.
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new GetUser(userId, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class GetUser extends AsyncClientRequest {
 
         String userId;
@@ -1052,6 +1321,20 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request for sending email confirmation for the current user.
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<Void>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new EmailVerification(client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class EmailVerification extends AsyncClientRequest<Void> {
 
         private final AbstractClient client;
@@ -1070,6 +1353,20 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request for forgetting username using user's email
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback<Void>} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new ForgotUsername(client, email, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private static class ForgotUsername extends AsyncClientRequest<Void> {
 
         private final AbstractClient client;
@@ -1090,6 +1387,20 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Asynchronous request for Login using using a Kinvey user's _id and their valid Kinvey Auth Token
+     * <p/>
+     * Methods in this API use either {@link KinveyClientCallback} for returning User data
+     * </p>
+     * <p>
+     * Entity Set sample:
+     * <pre>
+     * {@code
+     *      new LoginKinveyAuth(userId, authToken, client, callback).execute();
+     * }
+     * </pre>
+     * </p>
+     */
     private class LoginKinveyAuth extends AsyncClientRequest<User> {
 
         private String authToken;
@@ -1102,7 +1413,6 @@ public class AsyncUserStore {
             this.userID = userId;
             this.authToken = authToken;
             this.client = client;
-            
         }
 
         @Override
@@ -1112,6 +1422,12 @@ public class AsyncUserStore {
         }
     }
 
+    /**
+     * Create Builder for UserStoreRequestManager
+     *
+     * @param client Kinvey client instance
+     * @return KinveyAuthRequest.Builder
+     */
     private static KinveyAuthRequest.Builder createBuilder(AbstractClient client) {
         String appKey = ((KinveyClientRequestInitializer) client.getKinveyRequestInitializer()).getAppKey();
         String appSecret = ((KinveyClientRequestInitializer) client.getKinveyRequestInitializer()).getAppSecret();
