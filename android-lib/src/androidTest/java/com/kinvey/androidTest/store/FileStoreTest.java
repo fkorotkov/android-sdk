@@ -44,7 +44,6 @@ public class FileStoreTest {
 
     private Client client = null;
     private boolean success;
-    private FileMetaData fileMetaDataResult;
     private StoreType storeTypeResult;
 
     private static class DefaultUploadProgressListener implements AsyncUploaderProgressListener<FileMetaData> {
@@ -651,10 +650,8 @@ public class FileStoreTest {
         latch.await();
         assertTrue(success);
         if (!isCacheCleaning) {
-            fileMetaDataResult = fileMetaData;
             storeTypeResult = storeType;
         } else {
-            fileMetaDataResult = null;
             storeTypeResult = null;
         }
     }
