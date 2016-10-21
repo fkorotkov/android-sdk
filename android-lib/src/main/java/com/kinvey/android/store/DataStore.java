@@ -148,14 +148,20 @@ public class DataStore<T extends GenericJson> extends BaseDataStore<T> {
      * @param collectionName Name of the appData collection
      * @param myClass        Class Type to marshall data between.
      */
-    public DataStore(String collectionName, Class<T> myClass, AbstractClient client, StoreType storeType, NetworkManager<T> networkManager) {
+    protected DataStore(String collectionName, Class<T> myClass, AbstractClient client, StoreType storeType, NetworkManager<T> networkManager) {
         super(client, collectionName, myClass, storeType, networkManager);
         loadMethodMap();
     }
 
+    public static <T extends GenericJson> DataStore<T> collection(String collectionName, Class<T> myClass) {
+        return DataStore.collection(collectionName, myClass, StoreType.CACHE, Client.sharedInstance());
+    }
+
+
     public static <T extends GenericJson> DataStore<T> collection(String collectionName, Class<T> myClass, StoreType storeType, AbstractClient client) {
         Preconditions.checkNotNull(collectionName, "collectionName cannot be null.");
         Preconditions.checkNotNull(storeType, "storeType cannot be null.");
+        Preconditions.checkNotNull(client, "client cannot be null.");
         Preconditions.checkArgument(client.isInitialize(), "client must be initialized.");
         return new DataStore<T>(collectionName, myClass, client, storeType);
     }
