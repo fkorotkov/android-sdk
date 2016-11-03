@@ -13,13 +13,20 @@
  */
 
 import com.kinvey.java.Logger;
+import com.kinvey.java.core.DownloaderProgressListener;
+import com.kinvey.java.core.MediaHttpDownloader;
 import com.kinvey.java.dto.User;
-import com.kinvey.java.store.BaseDataStore;
-import com.kinvey.java.store.BaseUserStore;
+import com.kinvey.java.model.FileMetaData;
 import com.kinvey.java.store.StoreType;
 import com.kinvey.nativejava.Client;
+import com.kinvey.nativejava.store.DataStore;
+import com.kinvey.nativejava.store.FileStore;
+import com.kinvey.nativejava.store.UserStore;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author edwardf
@@ -31,6 +38,8 @@ public class HelloWorld {
 
     public static final String appKey = "kid_H1lH5Dsw";
     public static final String appSecret = "cc5c72d261d8473590a0fa01024fb313";
+
+    static String FILE_ID_TEST = "dc7e6092-1b6e-404a-9ea5-b623088f0f05";
 
     public static void main(String[] args) {
         System.out.println("Hello World");
@@ -49,7 +58,7 @@ public class HelloWorld {
         System.out.println("Client ping -> " + ping);
 
         try {
-            User user = BaseUserStore.login("test", "test", client);
+            User user = UserStore.login("test", "test", client);
             System.out.println("Client login -> " + client.isUserLoggedIn());
             if (user != null && user.getUsername() != null) {
                 System.out.println("Username -> " + user.getUsername());
@@ -59,9 +68,9 @@ public class HelloWorld {
             e.printStackTrace();
         }
 
-        BaseDataStore<HelloEntity> dataStore = BaseDataStore.collection(HelloEntity.COLLECTION, HelloEntity.class, StoreType.NETWORK, client);
+        DataStore<HelloEntity> dataStore = DataStore.collection(HelloEntity.COLLECTION, HelloEntity.class, StoreType.NETWORK, client);
         HelloEntity entity = new HelloEntity();
-        entity.setName("test_name");
+        entity.setName("test_name_" + System.currentTimeMillis());
         HelloEntity he = null;
         try {
             he = dataStore.save(entity);
@@ -72,8 +81,50 @@ public class HelloWorld {
             System.out.println("Saved entity:" + he.getName());
         }
 
+        try {
+            List<HelloEntity> list = dataStore.find();
+            if (list != null) {
+                for (HelloEntity helloEntity : list) {
+                    System.out.println("Got entity: " + helloEntity.getName());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
+        try {
+            testFileStore(client);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    private static void testFileStore(Client client) throws IOException {
+        // TODO: 03.11.2016 FileStoreTesting
+        FileMetaData fm_temp = null;
+        FileMetaData fileMetaData = null;
+        FileStore fileStore = client.getFileStore(StoreType.NETWORK);
+        fm_temp = fileStore.find(FILE_ID_TEST, null);
+
+        if (fm_temp != null) {
+            final File outputFile = new File("D:\\Kinvey\\", fm_temp.getFileName());
+            if (!outputFile.exists()) {
+                outputFile.createNewFile();
+            }
+            final FileOutputStream fos = new FileOutputStream(outputFile);
+
+            fileMetaData = fileStore.download(fm_temp, fos, null, new DownloaderProgressListener() {
+                public void progressChanged(MediaHttpDownloader mediaHttpDownloader) throws IOException {
+
+                }
+            });
+        }
+
+        System.out.println(fileMetaData != null ? "Success -> File: " + fileMetaData.getFileName() : "Fail -> File was not found");
+    }
 
 
 
@@ -90,7 +141,7 @@ public class HelloWorld {
                 GenericJson saved = appData.saveBlocking(entity).execute();
                 System.out.println("Saved:" + saved);
             }*/
-    }
+
 //        GenericJson first = new GenericJson();
 //        first.put("_id", "1");
 //        first.put("encode", "=");
