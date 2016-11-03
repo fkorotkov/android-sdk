@@ -380,10 +380,7 @@ public class BaseFileStore {
                                  final DownloaderProgressListener listener,
                                  KinveyCachedClientCallback<FileMetaData> cachedCallback) throws IOException {
         Preconditions.checkArgument(cachedCallback == null || readPolicy == ReadPolicy.BOTH, "KinveyCachedClientCallback can only be used with StoreType.CACHE");
-        File f = new File(cacheStorage(), metadata.getId());
-
-        File cacheStorage = cacheStorage();
-
+        File f;
         switch (readPolicy) {
             case FORCE_LOCAL:
                 f = getCachedFile(metadata);
