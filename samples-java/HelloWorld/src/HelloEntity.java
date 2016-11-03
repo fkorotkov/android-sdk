@@ -19,33 +19,19 @@ import com.google.api.client.util.Key;
  * @author edwardf
  */
 public class HelloEntity extends GenericJson {
+    public static final String COLLECTION = "JLIB";
 
-    @Key("_id")
-    private String id;
-
-    @Key
-    private String somedata;
+    @Key("name")
+    private String name;
 
 
     public HelloEntity(){}
 
-    public HelloEntity(String somedata){
-        this.somedata = somedata;
+    public String getName() {
+        return name;
     }
 
-    public String getSomedata() {
-        return somedata;
-    }
-
-    public void setSomedata(String somedata) {
-        this.somedata = somedata;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public void setName(String name) {
+        this.name = name;
     }
 }
