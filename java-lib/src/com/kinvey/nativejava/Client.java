@@ -14,9 +14,6 @@
 package com.kinvey.nativejava;
 
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.google.api.client.http.BackOffPolicy;
 import com.google.api.client.http.ExponentialBackOffPolicy;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -33,12 +30,15 @@ import com.kinvey.java.auth.Credential;
 import com.kinvey.java.auth.CredentialManager;
 import com.kinvey.java.auth.CredentialStore;
 import com.kinvey.java.auth.InMemoryCredentialStore;
-import com.kinvey.java.auth.KinveyAuthRequest;
 import com.kinvey.java.cache.ICacheManager;
 import com.kinvey.java.core.KinveyClientRequestInitializer;
 import com.kinvey.java.network.NetworkFileManager;
-import com.kinvey.java.network.NetworkManager;
-import com.kinvey.java.store.BaseUserStore;
+import com.kinvey.java.store.StoreType;
+import com.kinvey.nativejava.store.FileStore;
+import com.kinvey.nativejava.store.UserStore;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@inheritDoc}
@@ -73,80 +73,11 @@ public class Client extends AbstractClient {
         cacheManager = new CacheManager();
     }
 
-    /**
-     * NetworkManager factory method
-     * <p>
-     * Returns an instance of {@link NetworkManager} for the supplied collection.  A new instance is created for each collection, but
-     * only one instance of {@link com.kinvey.nativejava.NetworkManager} is created per collection.  The method is Generic and takes an instance of a
-     * {@link com.google.api.client.json.GenericJson} entity type that is used for fetching/saving of {@link NetworkManager}.
-     * </p>
-     * <p>
-     * This method is thread-safe.
-     * </p>
-     * <p>
-     * Sample Usage:
-     * <pre>
-     * {@code
-     * NetworkManager<myEntity> myAppData = kinveyClient.appData("entityCollection", myEntity.class);
-     * }
-     * </pre>
-     * </p>
-     *
-     * @param collectionName The name of the collection
-     * @param myClass        The class that defines the entity of type {@link com.google.api.client.json.GenericJson} used
-     *                       for saving and fetching of data
-     * @param <T>            Generic of type {@link com.google.api.client.json.GenericJson} of same type as myClass
-     * @return Instance of {@link NetworkManager} for the defined collection
-     */
-    public <T extends GenericJson> com.kinvey.nativejava.NetworkManager<T> appData(String collectionName, Class<T> myClass) {
-        synchronized (lock) {
-            Preconditions.checkNotNull(collectionName, "collectionName must not be null");
-            if (appDataInstanceCache == null) {
-                appDataInstanceCache = new ConcurrentHashMap<String, com.kinvey.nativejava.NetworkManager>();
-            }
-            if (!appDataInstanceCache.containsKey(collectionName)) {
-                appDataInstanceCache.put(collectionName, new com.kinvey.nativejava.NetworkManager(collectionName, myClass, this));
-            }
-            if (appDataInstanceCache.containsKey(collectionName) && !appDataInstanceCache.get(collectionName).getCurrentClass().equals(myClass)) {
-                appDataInstanceCache.put(collectionName, new com.kinvey.nativejava.NetworkManager(collectionName, myClass, this));
-            }
 
-            return appDataInstanceCache.get(collectionName);
-        }
-    }
-
-    /**
-     * NetworkFileManager factory method
-     * <p>
-     * Returns an instance of {@link NetworkFileManager} for uploading and downloading of files.  Only one instance is created for each
-     * instance of the Kinvey client.
-     * </p>
-     * <p>
-     * This method is thread-safe.
-     * </p>
-     * <p>
-     * Sample Usage:
-     * <pre>
-     * {@code
-     * NetworkFileManager myFile = kinveyClient.file();
-     * }
-     * </pre>
-     * </p>
-     *
-     * @return Instance of {@link NetworkFileManager} for the defined collection
-     */
-/*    @Override
-    public com.kinvey.nativejava.NetworkFileManager file() {
-        synchronized (lock) {
-            if (file == null) {
-                file = new com.kinvey.nativejava.NetworkFileManager(this);
-            }
-            return file;
-        }
-    }*/
+    //native java doesn't have any lockdown support as of yet
     @Override
     public void performLockDown() {
-        //native java doesn't have any lockdown support as of yet
+        Preconditions.checkArgument(false, "native java doesn't have any lockdown support as of yet");
     }
 
     /**
@@ -169,11 +100,11 @@ public class Client extends AbstractClient {
      *
      * @return Instance of {@link com.kinvey.java.UserDiscovery} for the defined collection
      */
-/*    public <I, O> CustomEndpoints<I, O> customEndpoints(Class<O> myClass) {
+    public <I extends GenericJson, O> CustomEndpoints<I, O> customEndpoints(Class<O> myClass) {
         synchronized (lock) {
             return new CustomEndpoints(myClass, this);
         }
-    }*/
+    }
 
     /**
      * UserDiscovery factory method
@@ -239,23 +170,25 @@ public class Client extends AbstractClient {
     }
 
     @Override
-    public <I extends GenericJson, O> com.kinvey.java.CustomEndpoints<I, O> customEndpoints(Class<O> myClass) {
-        return null;
-    }
-
-    @Override
     public ICacheManager getCacheManager() {
         return cacheManager;
     }
 
     @Override
     public String getFileCacheFolder() {
+        Preconditions.checkArgument(false, "native java doesn't have implemented cache");
         return null;
     }
 
     @Override
     protected ICacheManager getSyncCacheManager() {
         return null;
+    }
+
+    @Override
+    public FileStore getFileStore(StoreType storeType) {
+        Preconditions.checkArgument(storeType == StoreType.NETWORK, "storeType cannot be CACHE or SYNC.");
+        return new FileStore(new NetworkFileManager(this), this.getCacheManager(), 3600000L, storeType, this.getFileCacheFolder());
     }
 
     /**
@@ -272,39 +205,6 @@ public class Client extends AbstractClient {
 
     }
 
-
-    /**
-     * User factory method
-     * <p>
-     * Returns the instance of {@link com.kinvey.java.User} that contains the current active user.  If no active user context
-     * has been established, the {@link com.kinvey.java.User} object returned will be instantiated and empty.
-     * </p>
-     * <p>
-     * This method is thread-safe.
-     * </p>
-     * <p>
-     *     Sample Usage:
-     * <pre>
-     * {@code
-    User currentUser = kinveyClient.currentUser();
-    }
-     * </pre>
-     * </p>
-     *
-     * @return Instance of {@link com.kinvey.java.User} for the defined collection
-     */
-/*    @Override
-    public User user() {
-        synchronized (lock) {
-            if (getCurrentUser() == null) {
-                String appKey = ((KinveyClientRequestInitializer) getKinveyRequestInitializer()).getAppKey();
-                String appSecret = ((KinveyClientRequestInitializer) getKinveyRequestInitializer()).getAppSecret();
-                setCurrentUser(new User(this, new KinveyAuthRequest.Builder(getRequestFactory().getTransport(), getJsonFactory(),
-                        getBaseUrl(), appKey, appSecret, null)));
-            }
-            return (User) getCurrentUser();
-        }
-    }*/
 
     /**
      * Asynchronous Ping service method
@@ -434,13 +334,13 @@ public class Client extends AbstractClient {
         private void loginWithCredential(final Client client, Credential credential) {
             getKinveyClientRequestInitializer().setCredential(credential);
             try {
-                BaseUserStore.login(credential, client);
+                UserStore.login(credential, client);
             } catch (IOException ex) {
                 Logger.INFO("KINVEY" + "Could not retrieve user Credentials");
             }
 
             try {
-                client.setUser(BaseUserStore.convenience(client));
+                client.setUser(UserStore.convenience(client));
             } catch (IOException ex) {
                 Logger.INFO("KINVEY" + "Unable to login!" + ex);
             }
