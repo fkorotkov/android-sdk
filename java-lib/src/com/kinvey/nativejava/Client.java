@@ -176,7 +176,6 @@ public class Client extends AbstractClient {
 
     @Override
     public String getFileCacheFolder() {
-        Preconditions.checkArgument(false, "native java doesn't have implemented cache");
         return null;
     }
 
