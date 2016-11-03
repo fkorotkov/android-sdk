@@ -65,7 +65,7 @@ public class NetworkFileManager extends com.kinvey.java.network.NetworkFileManag
 
         mediaContent.setCloseInputStream(false);
         mediaContent.setRetrySupported(false);
-        this.prepUploadBlocking(meta, mediaContent).execute();
+        this.prepUploadBlocking(meta, mediaContent, listener).execute();
     }
 
     /**
@@ -87,7 +87,7 @@ public class NetworkFileManager extends com.kinvey.java.network.NetworkFileManag
 
         mediaContent.setCloseInputStream(false);
         mediaContent.setRetrySupported(false);
-        return this.prepUploadBlocking(meta, mediaContent).execute();        }
+        return this.prepUploadBlocking(meta, mediaContent, listener).execute();        }
 
     /**
      * Uploads the contents of the stream to the Kinvey file service endpoint.
@@ -110,7 +110,7 @@ public class NetworkFileManager extends com.kinvey.java.network.NetworkFileManag
 
         mediaContent.setCloseInputStream(false);
         mediaContent.setRetrySupported(false);
-        prepUploadBlocking(meta, mediaContent).execute();
+        prepUploadBlocking(meta, mediaContent, listener).execute();
     }
     
     /***
@@ -145,14 +145,15 @@ public class NetworkFileManager extends com.kinvey.java.network.NetworkFileManag
 
         mediaContent.setCloseInputStream(false);
         mediaContent.setRetrySupported(false);
-        prepUploadBlocking(meta, mediaContent).execute();
+        prepUploadBlocking(meta, mediaContent, listener).execute();
     }
 
-    public void downloadBlocking(FileMetaData metaData, OutputStream out, DownloaderProgressListener listener) throws IOException{
+    // TODO: 02.11.2016 TO check
+/*    public void downloadBlocking(FileMetaData metaData, OutputStream out, DownloaderProgressListener listener) throws IOException{
         this.setDownloaderProgressListener(listener);
-        this.prepDownloadBlocking(metaData).executeAndDownloadTo(out);
+        this.prepDownloadBlocking(metaData).execute();
 
-    }
+    }*/
 
 
     /**
@@ -163,12 +164,13 @@ public class NetworkFileManager extends com.kinvey.java.network.NetworkFileManag
      * @param out - where to download the file
      * @param listener - for progress notifications
      */
-    public void downloadBlocking(Query query, OutputStream out, DownloaderProgressListener listener) throws IOException{
+    public FileMetaData[] downloadBlocking(Query query, OutputStream out, DownloaderProgressListener listener) throws IOException{
         this.setDownloaderProgressListener(listener);
-        this.prepDownloadBlocking(query).executeAndDownloadTo(out);
+        return this.prepDownloadBlocking(query).execute();
     }
 
 
+    // TODO: 02.11.2016 TO check
     /**
      * Download a file asyncronously with a custom time to live.
      *
@@ -179,7 +181,7 @@ public class NetworkFileManager extends com.kinvey.java.network.NetworkFileManag
      */
     public void downloadWithTTLBlocking(String id, int ttl, OutputStream out, DownloaderProgressListener listener) throws IOException{
         this.setDownloaderProgressListener(listener);
-        this.prepDownloadWithTTLBlocking(id, ttl).executeAndDownloadTo(out);
+        this.prepDownloadWithTTLBlocking(id, ttl).execute();
     }
 
     /**

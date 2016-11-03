@@ -22,26 +22,29 @@ import com.google.api.client.http.ExponentialBackOffPolicy;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.common.base.Preconditions;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.Logger;
-import com.kinvey.java.auth.ClientUsers;
+import com.kinvey.java.auth.ClientUser;
 import com.kinvey.java.auth.Credential;
 import com.kinvey.java.auth.CredentialManager;
 import com.kinvey.java.auth.CredentialStore;
-import com.kinvey.java.auth.InMemoryClientUsers;
 import com.kinvey.java.auth.InMemoryCredentialStore;
 import com.kinvey.java.auth.KinveyAuthRequest;
+import com.kinvey.java.cache.ICacheManager;
 import com.kinvey.java.core.KinveyClientRequestInitializer;
 import com.kinvey.java.network.NetworkFileManager;
 import com.kinvey.java.network.NetworkManager;
+import com.kinvey.java.store.BaseUserStore;
 
-/** {@inheritDoc}
+/**
+ * {@inheritDoc}
  *
  * @author edwardf
- * */
+ */
 public class Client extends AbstractClient {
 
 
@@ -50,8 +53,8 @@ public class Client extends AbstractClient {
     private UserDiscovery userDiscovery;
     private com.kinvey.nativejava.NetworkFileManager file;
     private UserGroup userGroup;
-    private ClientUsers clientUsers;
-
+    private ClientUser clientUser;
+    private CacheManager cacheManager;
 
     /**
      * Private constructor.  Use AbstractClient.Builder to initialize the AbstractClient.
@@ -67,8 +70,9 @@ public class Client extends AbstractClient {
     protected Client(HttpTransport transport, HttpRequestInitializer httpRequestInitializer, String rootUrl, String servicePath, JsonObjectParser objectParser, KinveyClientRequestInitializer kinveyRequestInitializer, CredentialStore store, BackOffPolicy requestPolicy) {
         super(transport, httpRequestInitializer, rootUrl, servicePath, objectParser, kinveyRequestInitializer, store, requestPolicy);
         Logger.init(new JavaLogger());
-
+        cacheManager = new CacheManager();
     }
+
     /**
      * NetworkManager factory method
      * <p>
@@ -80,21 +84,21 @@ public class Client extends AbstractClient {
      * This method is thread-safe.
      * </p>
      * <p>
-     *     Sample Usage:
+     * Sample Usage:
      * <pre>
      * {@code
-    NetworkManager<myEntity> myAppData = kinveyClient.appData("entityCollection", myEntity.class);
-    }
+     * NetworkManager<myEntity> myAppData = kinveyClient.appData("entityCollection", myEntity.class);
+     * }
      * </pre>
      * </p>
      *
      * @param collectionName The name of the collection
-     * @param myClass The class that defines the entity of type {@link com.google.api.client.json.GenericJson} used
-     *                for saving and fetching of data
-     * @param <T> Generic of type {@link com.google.api.client.json.GenericJson} of same type as myClass
+     * @param myClass        The class that defines the entity of type {@link com.google.api.client.json.GenericJson} used
+     *                       for saving and fetching of data
+     * @param <T>            Generic of type {@link com.google.api.client.json.GenericJson} of same type as myClass
      * @return Instance of {@link NetworkManager} for the defined collection
      */
-    public <T> com.kinvey.nativejava.NetworkManager<T> appData(String collectionName, Class<T> myClass) {
+    public <T extends GenericJson> com.kinvey.nativejava.NetworkManager<T> appData(String collectionName, Class<T> myClass) {
         synchronized (lock) {
             Preconditions.checkNotNull(collectionName, "collectionName must not be null");
             if (appDataInstanceCache == null) {
@@ -103,7 +107,7 @@ public class Client extends AbstractClient {
             if (!appDataInstanceCache.containsKey(collectionName)) {
                 appDataInstanceCache.put(collectionName, new com.kinvey.nativejava.NetworkManager(collectionName, myClass, this));
             }
-            if(appDataInstanceCache.containsKey(collectionName) && !appDataInstanceCache.get(collectionName).getCurrentClass().equals(myClass)){
+            if (appDataInstanceCache.containsKey(collectionName) && !appDataInstanceCache.get(collectionName).getCurrentClass().equals(myClass)) {
                 appDataInstanceCache.put(collectionName, new com.kinvey.nativejava.NetworkManager(collectionName, myClass, this));
             }
 
@@ -121,17 +125,17 @@ public class Client extends AbstractClient {
      * This method is thread-safe.
      * </p>
      * <p>
-     *     Sample Usage:
+     * Sample Usage:
      * <pre>
      * {@code
-    NetworkFileManager myFile = kinveyClient.file();
-    }
+     * NetworkFileManager myFile = kinveyClient.file();
+     * }
      * </pre>
      * </p>
      *
      * @return Instance of {@link NetworkFileManager} for the defined collection
      */
-    @Override
+/*    @Override
     public com.kinvey.nativejava.NetworkFileManager file() {
         synchronized (lock) {
             if (file == null) {
@@ -139,8 +143,7 @@ public class Client extends AbstractClient {
             }
             return file;
         }
-    }
-
+    }*/
     @Override
     public void performLockDown() {
         //native java doesn't have any lockdown support as of yet
@@ -166,11 +169,11 @@ public class Client extends AbstractClient {
      *
      * @return Instance of {@link com.kinvey.java.UserDiscovery} for the defined collection
      */
-    public <I, O> CustomEndpoints<I, O> customEndpoints(Class<O> myClass) {
+/*    public <I, O> CustomEndpoints<I, O> customEndpoints(Class<O> myClass) {
         synchronized (lock) {
             return new CustomEndpoints(myClass, this);
         }
-    }
+    }*/
 
     /**
      * UserDiscovery factory method
@@ -182,11 +185,11 @@ public class Client extends AbstractClient {
      * This method is thread-safe.
      * </p>
      * <p>
-     *     Sample Usage:
+     * Sample Usage:
      * <pre>
-     {@code
-     UserDiscovery myUserDiscovery = kinveyClient.userDiscovery();
-     }
+     * {@code
+     * UserDiscovery myUserDiscovery = kinveyClient.userDiscovery();
+     * }
      * </pre>
      * </p>
      *
@@ -213,11 +216,11 @@ public class Client extends AbstractClient {
      * This method is thread-safe.
      * </p>
      * <p>
-     *     Sample Usage:
+     * Sample Usage:
      * <pre>
-     {@code
-     UserGroup myUserGroup = kinveyClient.userGroup();
-     }
+     * {@code
+     * UserGroup myUserGroup = kinveyClient.userGroup();
+     * }
      * </pre>
      * </p>
      *
@@ -235,14 +238,36 @@ public class Client extends AbstractClient {
 
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected ClientUsers getClientUsers() {
+    public <I extends GenericJson, O> com.kinvey.java.CustomEndpoints<I, O> customEndpoints(Class<O> myClass) {
+        return null;
+    }
+
+    @Override
+    public ICacheManager getCacheManager() {
+        return cacheManager;
+    }
+
+    @Override
+    public String getFileCacheFolder() {
+        return null;
+    }
+
+    @Override
+    protected ICacheManager getSyncCacheManager() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ClientUser getClientUser() {
         synchronized (lock) {
-            if (this.clientUsers == null) {
-                this.clientUsers = InMemoryClientUsers.getClientUsers();
+            if (this.clientUser == null) {
+                this.clientUser = JavaUserStore.getUserStore();
             }
-            return this.clientUsers;
+            return this.clientUser;
         }
 
     }
@@ -268,7 +293,7 @@ public class Client extends AbstractClient {
      *
      * @return Instance of {@link com.kinvey.java.User} for the defined collection
      */
-    @Override
+/*    @Override
     public User user() {
         synchronized (lock) {
             if (getCurrentUser() == null) {
@@ -279,7 +304,7 @@ public class Client extends AbstractClient {
             }
             return (User) getCurrentUser();
         }
-    }
+    }*/
 
     /**
      * Asynchronous Ping service method
@@ -289,15 +314,16 @@ public class Client extends AbstractClient {
      * <p>
      * Sample Usage:
      * <pre>
-     {@code
-     boolean ping = kinveyClient.ping().execute();
-     }
+     * {@code
+     * boolean ping = kinveyClient.ping().execute();
+     * }
      * </pre>
      * </p>
+     *
      * @return true if ping is successful, false if it fails
      */
-    public boolean ping() throws IOException{
-    	return super.pingBlocking();
+    public boolean ping() throws IOException {
+        return super.pingBlocking();
     }
 
 
@@ -324,7 +350,7 @@ public class Client extends AbstractClient {
          * Use this constructor to create a AbstractClient.Builder, which can be used to build a Kinvey AbstractClient with defaults
          * set for the Java runtime.
          *
-         * @param appKey Your Kinvey Application Key
+         * @param appKey    Your Kinvey Application Key
          * @param appSecret Your Kinvey Application Secret
          */
         public Builder(String appKey, String appSecret) {
@@ -334,7 +360,7 @@ public class Client extends AbstractClient {
             try {
                 this.setCredentialStore(new InMemoryCredentialStore());
             } catch (Exception ex) {
-            	Logger.INFO("KINVEY" +  "Credential store failed to load" + ex);
+                Logger.INFO("KINVEY" + "Credential store failed to load" + ex);
             }
             this.setJsonFactory(this.factory);
 
@@ -355,11 +381,10 @@ public class Client extends AbstractClient {
 
 
         @Override
-        public Builder setJsonFactory(JsonFactory factory){
+        public Builder setJsonFactory(JsonFactory factory) {
             super.setJsonFactory(factory);
             return this;
         }
-
 
 
         /**
@@ -372,19 +397,18 @@ public class Client extends AbstractClient {
                     getHttpRequestInitializer(), getBaseUrl(),
                     getServicePath(), getObjectParser(), getKinveyClientRequestInitializer(), getCredentialStore(),
                     getRequestBackoffPolicy());
-            client.clientUsers = InMemoryClientUsers.getClientUsers();
+//            client.user = InMemoryCredentialStore.getClientUsers();
             try {
                 Credential credential = retrieveUserFromCredentialStore(client);
                 if (credential != null) {
                     loginWithCredential(client, credential);
                 }
             } catch (IOException ex) {
-            	Logger.INFO("KINVEY" +  "Credential store failed to load" + ex);
-                client.setCurrentUser(null);
+                Logger.INFO("KINVEY" + "Credential store failed to load" + ex);
+                client.setUser(null);
             }
 
-
-            if (this.debugMode){
+            if (this.debugMode) {
                 client.enableDebugLogging();
             }
 
@@ -394,8 +418,8 @@ public class Client extends AbstractClient {
         private Credential retrieveUserFromCredentialStore(Client client)
                 throws IOException {
             Credential credential = null;
-            if (!client.user().isUserLoggedIn()) {
-                String userID = client.getClientUsers().getCurrentUser();
+            if (!client.isUserLoggedIn()) {
+                String userID = client.getClientUser().getUser();
                 if (userID != null && !userID.equals("")) {
                     CredentialStore store;
                     store = new InMemoryCredentialStore();
@@ -410,22 +434,17 @@ public class Client extends AbstractClient {
         private void loginWithCredential(final Client client, Credential credential) {
             getKinveyClientRequestInitializer().setCredential(credential);
             try {
-                client.user().login(credential).execute();
+                BaseUserStore.login(credential, client);
             } catch (IOException ex) {
-            	Logger.INFO("KINVEY" + "Could not retrieve user Credentials");
+                Logger.INFO("KINVEY" + "Could not retrieve user Credentials");
             }
 
-            try{
-            client.setCurrentUser(client.user().retrieveMetadataBlocking());
-            }catch (IOException ex){
-            	Logger.INFO("KINVEY" +  "Unable to login!" + ex);
+            try {
+                client.setUser(BaseUserStore.convenience(client));
+            } catch (IOException ex) {
+                Logger.INFO("KINVEY" + "Unable to login!" + ex);
             }
         }
-
-
-
-
     }
-
 
 }
