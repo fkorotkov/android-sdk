@@ -7,6 +7,11 @@ sourceSets {
             srcDir 'src'
         }
     }
+    test{
+        java{
+            srcDir 'test'
+        }
+    }
 }
 
 configurations {
@@ -41,6 +46,7 @@ dependencies {
     }
     compile 'org.codehaus.jackson:jackson-core-asl:1.9.12'
     compile project(':java-api-core')
+    testCompile project(':java-api-core').sourceSets.test.output
     testCompile 'junit:junit:4.10'
     testCompile 'org.robolectric:robolectric:2.1.1'
     compile('com.google.android:android:4.0.1.2') {

@@ -55,6 +55,7 @@ public class Client extends AbstractClient {
     private UserGroup userGroup;
     private ClientUser clientUser;
     private CacheManager cacheManager;
+    private CacheManager syncCacheManager;
 
     /**
      * Private constructor.  Use AbstractClient.Builder to initialize the AbstractClient.
@@ -171,16 +172,19 @@ public class Client extends AbstractClient {
 
     @Override
     public ICacheManager getCacheManager() {
+        // TODO: 04.11.2016 cacheManager should be created for using cache
         return cacheManager;
     }
 
     @Override
     public String getFileCacheFolder() {
+        // TODO: 04.11.2016 path to cache folder should be created for using cache
         return null;
     }
 
     @Override
     protected ICacheManager getSyncCacheManager() {
+        // TODO: 04.11.2016 syncCacheManager should be created for using cache
         return null;
     }
 

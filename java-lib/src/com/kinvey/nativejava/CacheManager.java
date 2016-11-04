@@ -5,6 +5,7 @@ import com.google.api.client.json.GenericJson;
 import com.kinvey.java.cache.ICache;
 import com.kinvey.java.cache.ICacheManager;
 
+// TODO: 04.11.2016 This class should be used for implementing cache
 class CacheManager implements ICacheManager {
 
     @Override
