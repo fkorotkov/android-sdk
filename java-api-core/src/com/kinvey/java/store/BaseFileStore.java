@@ -111,7 +111,7 @@ public class BaseFileStore {
 /*        if (fileMetadataWithPath.getId() == null){
             fileMetadataWithPath.setId(UUID.randomUUID().toString());
         }*/
-
+        
         NetworkFileManager.UploadMetadataAndFile prepUpload =
                 networkFileManager.prepUploadBlocking(fileMetadataWithPath,
                         new FileContent(fileMetadataWithPath.getMimetype(), file), listener);
