@@ -192,8 +192,10 @@ public class UserStoreTest {
 
 
     @Test
+    @Ignore // need to add facebookAccessToken
+    //EAAKY5ePO2X0BAK5RVglpQEC3lvRh7onxIzWdJdZAme61n9nLKh3w8RK59AtBM5tLDRZAqpK3QsLwHIUECqChk7eNVTjxeqBqsgQA3uXyghe4zlLfPZAulXdJz5MMC5wZCGxHJZAueNVmEoMJ0DTChQs5rsZCqh9rl8BcN4SzMgSwZDZD
     public void testLoginFacebookAsync() throws InterruptedException {
-        String facebookAccessToken = "EAAKY5ePO2X0BAK5RVglpQEC3lvRh7onxIzWdJdZAme61n9nLKh3w8RK59AtBM5tLDRZAqpK3QsLwHIUECqChk7eNVTjxeqBqsgQA3uXyghe4zlLfPZAulXdJz5MMC5wZCGxHJZAueNVmEoMJ0DTChQs5rsZCqh9rl8BcN4SzMgSwZDZD";
+        String facebookAccessToken = "";
         DefaultKinveyLoginCallback userCallback = loginFacebook(facebookAccessToken, client);
         assertNotNull(userCallback.result);
         assertTrue(client.isUserLoggedIn());
@@ -229,9 +231,10 @@ public class UserStoreTest {
 
 
     @Test
+    @Ignore // need to add googleAccessToken ya29.Ci-uA9PahJ417GK3tRf7yt9zuqv68xRKBB2QzG7QVaTK6_AtQ0hzaj5QPBWKsrDQDA
     public void testLoginGoogleAsync() throws InterruptedException {
-        String facebookAccessToken = "";
-        DefaultKinveyLoginCallback userCallback = loginGoogle(facebookAccessToken, client);
+        String googleAccessToken = "";
+        DefaultKinveyLoginCallback userCallback = loginGoogle(googleAccessToken, client);
         assertNotNull(userCallback.result);
         assertTrue(client.isUserLoggedIn());
     }
@@ -239,8 +242,8 @@ public class UserStoreTest {
 
     @Test
     public void testLoginGoogleAsyncBad() throws InterruptedException {
-        String facebookAccessToken = "wrong_access_token";
-        DefaultKinveyLoginCallback userCallback = loginGoogle(facebookAccessToken, client);
+        String googleAccessToken = "wrong_access_token";
+        DefaultKinveyLoginCallback userCallback = loginGoogle(googleAccessToken, client);
         assertNotNull(userCallback.error);
         assertFalse(client.isUserLoggedIn());
     }
@@ -261,8 +264,8 @@ public class UserStoreTest {
             }
         }).start();
         latch.await();
-
-
+        return callback;
+    }
     /*------------------------------------------------------------------------------------------*/
 
 }
