@@ -33,6 +33,7 @@ import com.kinvey.java.store.StoreType;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -188,6 +189,79 @@ public class UserStoreTest {
         assertNotNull(userCallback.error);
         assertFalse(client.isUserLoggedIn());
     }
+
+
+    @Test
+    public void testLoginFacebookAsync() throws InterruptedException {
+        String facebookAccessToken = "EAAKY5ePO2X0BAK5RVglpQEC3lvRh7onxIzWdJdZAme61n9nLKh3w8RK59AtBM5tLDRZAqpK3QsLwHIUECqChk7eNVTjxeqBqsgQA3uXyghe4zlLfPZAulXdJz5MMC5wZCGxHJZAueNVmEoMJ0DTChQs5rsZCqh9rl8BcN4SzMgSwZDZD";
+        DefaultKinveyLoginCallback userCallback = loginFacebook(facebookAccessToken, client);
+        assertNotNull(userCallback.result);
+        assertTrue(client.isUserLoggedIn());
+    }
+
+
+    @Test
+    public void testLoginFacebookAsyncBad() throws InterruptedException {
+        String facebookAccessToken = "wrong_access_token";
+        DefaultKinveyLoginCallback userCallback = loginFacebook(facebookAccessToken, client);
+        assertNotNull(userCallback.error);
+        assertFalse(client.isUserLoggedIn());
+    }
+
+    private DefaultKinveyLoginCallback loginFacebook(final String accessToken, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyLoginCallback callback = new DefaultKinveyLoginCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                try {
+                    UserStore.loginFacebook(accessToken, client, callback);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
+
+
+    @Test
+    public void testLoginGoogleAsync() throws InterruptedException {
+        String facebookAccessToken = "";
+        DefaultKinveyLoginCallback userCallback = loginGoogle(facebookAccessToken, client);
+        assertNotNull(userCallback.result);
+        assertTrue(client.isUserLoggedIn());
+    }
+
+
+    @Test
+    public void testLoginGoogleAsyncBad() throws InterruptedException {
+        String facebookAccessToken = "wrong_access_token";
+        DefaultKinveyLoginCallback userCallback = loginGoogle(facebookAccessToken, client);
+        assertNotNull(userCallback.error);
+        assertFalse(client.isUserLoggedIn());
+    }
+
+    private DefaultKinveyLoginCallback loginGoogle(final String accessToken, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyLoginCallback callback = new DefaultKinveyLoginCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                try {
+                    UserStore.loginGoogle(accessToken, client, callback);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+
 
     /*------------------------------------------------------------------------------------------*/
 
