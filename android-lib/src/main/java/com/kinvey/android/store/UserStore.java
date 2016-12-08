@@ -95,9 +95,9 @@ public class UserStore {
     }
 
     public static void logout(AbstractClient client) {
-        if(clearStorage) {
+/*        if(clearStorage) {
             client.performLockDown();
-        }
+        }*/
         new LogoutRequest(client).execute();
     }
 
