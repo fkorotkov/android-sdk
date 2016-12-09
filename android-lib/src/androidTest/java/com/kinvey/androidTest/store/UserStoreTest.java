@@ -59,6 +59,8 @@ import static org.junit.Assert.assertTrue;
 public class UserStoreTest {
 
     private Client client;
+    private final String username = "test";
+    private final String password = "test";
 
 
     @Before
@@ -169,14 +171,14 @@ public class UserStoreTest {
         DefaultKinveyLoginCallback userCallback = login(fakeClient);
         assertNotNull(userCallback.error);
 
-        userCallback = login("test", "test", fakeClient);
+        userCallback = login(username, password, fakeClient);
         assertNotNull(userCallback.error);
     }
 
 
     @Test
     public void testLoginUserPassAsync() throws InterruptedException {
-        DefaultKinveyLoginCallback userCallback = login("test", "test", client);
+        DefaultKinveyLoginCallback userCallback = login(username, password, client);
         assertNotNull(userCallback.result);
         assertTrue(client.isUserLoggedIn());
         UserStore.logout(client);
@@ -185,7 +187,7 @@ public class UserStoreTest {
 
     @Test
     public void testLoginUserPassAsyncBad() throws InterruptedException {
-        DefaultKinveyLoginCallback userCallback = login("test", "wrongPassword", client);
+        DefaultKinveyLoginCallback userCallback = login(username, "wrongPassword", client);
         assertNotNull(userCallback.error);
         assertFalse(client.isUserLoggedIn());
     }
@@ -231,7 +233,7 @@ public class UserStoreTest {
 
 
     @Test
-    @Ignore // need to add googleAccessToken ya29.Ci-uA9PahJ417GK3tRf7yt9zuqv68xRKBB2QzG7QVaTK6_AtQ0hzaj5QPBWKsrDQDA
+    @Ignore // need to add googleAccessToken ya29.Ci-vA9oNKCrCCfKWPldBnj-5c1uL85HomkpcfqXk6dk_OaHCabOlFYp7XXWw_zwrzQ
     public void testLoginGoogleAsync() throws InterruptedException {
         String googleAccessToken = "";
         DefaultKinveyLoginCallback userCallback = loginGoogle(googleAccessToken, client);
@@ -266,6 +268,96 @@ public class UserStoreTest {
         latch.await();
         return callback;
     }
+
+
+    @Test
+    @Ignore // need to add accessToken,  accessSecret, consumerKey, consumerSecret
+    public void testLoginTwitterAsync() throws InterruptedException {
+        String accessToken = "";
+        String accessSecret = "";
+        String consumerKey = "";
+        String consumerSecret = "";
+        DefaultKinveyLoginCallback userCallback = loginTwitter(accessToken, accessSecret, consumerKey, consumerSecret, client);
+        assertNotNull(userCallback.result);
+        assertTrue(client.isUserLoggedIn());
+    }
+
+
+    @Test
+    public void testLoginTwitterAsyncBad() throws InterruptedException {
+        String accessToken = "wrongAccessToken";
+        String accessSecret = "wrongAccessSecret";
+        String consumerKey = "wrongConsumerKey";
+        String consumerSecret = "wrongConsumerSecret";
+        DefaultKinveyLoginCallback userCallback = loginTwitter(accessToken, accessSecret, consumerKey, consumerSecret, client);
+        assertNotNull(userCallback.error);
+        assertFalse(client.isUserLoggedIn());
+    }
+
+    private DefaultKinveyLoginCallback loginTwitter(final String accessToken, final String accessSecret, final String consumerKey, final String consumerSecret, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyLoginCallback callback = new DefaultKinveyLoginCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                try {
+                    UserStore.loginTwitter(accessToken, accessSecret, consumerKey, consumerSecret, client, callback);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
+
+
+    @Test
+//    @Ignore // need to add accessToken,  accessSecret, consumerKey, consumerSecret
+    public void testLoginLinkedInAsync() throws InterruptedException {
+        String accessToken = "AQXu60okmBXrQkBm5BOpBCBBpCYc3y9uKWHtF559A1j4ttwjf5bXNeq0nVOHtgPomuw9Wn661BYbZal-3IReW0zc-Ed8NvP0FNdOTQVt9c8qz9EL5sezCYKd_I2VPEEMSC-YOyvhi-7WsttjaPnU_9H_kCnfVJuU7Fyt8Ph1XTw66xZeu2U";
+        String accessSecret = "ExAZxYxvo42UfOCN";
+        String consumerKey = "86z99b0orhyt7s";
+        String consumerSecret = "ExAZxYxvo42UfOCN";
+        DefaultKinveyLoginCallback userCallback = loginLinkedIn(accessToken, consumerSecret, consumerKey, consumerSecret, client);
+        assertNotNull(userCallback.result);
+        assertTrue(client.isUserLoggedIn());
+    }
+
+
+    @Test
+    public void testLoginLinkedInAsyncBad() throws InterruptedException {
+        String accessToken = "wrongAccessToken";
+        String accessSecret = "wrongAccessSecret";
+        String consumerKey = "wrongConsumerKey";
+        String consumerSecret = "wrongConsumerSecret";
+        DefaultKinveyLoginCallback userCallback = loginLinkedIn(accessToken, accessSecret, consumerKey, consumerSecret, client);
+        assertNotNull(userCallback.error);
+        assertFalse(client.isUserLoggedIn());
+    }
+
+    private DefaultKinveyLoginCallback loginLinkedIn(final String accessToken, final String accessSecret, final String consumerKey, final String consumerSecret, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyLoginCallback callback = new DefaultKinveyLoginCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                try {
+                    UserStore.loginLinkedIn(accessToken, accessSecret, consumerKey, consumerSecret, client, callback);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
+
+
     /*------------------------------------------------------------------------------------------*/
 
 }
