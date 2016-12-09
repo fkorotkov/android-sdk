@@ -139,9 +139,9 @@ public class Client extends AbstractClient {
 
     @Override
     public void performLockDown() {
-        if(getCacheManager() != null){
+/*        if(getCacheManager() != null){
             getCacheManager().clear();
-        }
+        }*/
 
         this.getFileStore(StoreType.SYNC).clearCache();
         List<ClientExtension> extensions = getExtensions();
