@@ -14,7 +14,9 @@ import com.google.api.client.http.HttpRequestInitializer;
 import com.kinvey.android.Client;
 import com.kinvey.android.callback.KinveyDeleteCallback;
 import com.kinvey.android.callback.KinveyListCallback;
+import com.kinvey.android.callback.KinveyMICCallback;
 import com.kinvey.android.callback.KinveyPurgeCallback;
+import com.kinvey.android.callback.KinveyUserCallback;
 import com.kinvey.android.store.DataStore;
 import com.kinvey.android.store.UserStore;
 import com.kinvey.android.sync.KinveyPullCallback;
@@ -91,6 +93,94 @@ public class UserStoreTest {
 
         @Override
         public void onSuccess(User result) {
+            this.result = result;
+            finish();
+        }
+
+        @Override
+        public void onFailure(Throwable error) {
+            this.error = error;
+            finish();
+        }
+
+        void finish() {
+            latch.countDown();
+        }
+    }
+
+    private static class DefaultKinveyMICCallback implements KinveyMICCallback<User> {
+
+        private CountDownLatch latch;
+        User result;
+        Throwable error;
+        String myURLToRender;
+
+        DefaultKinveyMICCallback(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        @Override
+        public void onSuccess(User result) {
+            this.result = result;
+            finish();
+        }
+
+        @Override
+        public void onFailure(Throwable error) {
+            this.error = error;
+            finish();
+        }
+
+        void finish() {
+            latch.countDown();
+        }
+
+        @Override
+        public void onReadyToRender(String myURLToRender) {
+            this.myURLToRender = myURLToRender;
+            finish();
+        }
+    }
+
+    private static class DefaultKinveyUserCallback implements KinveyUserCallback<User> {
+
+        private CountDownLatch latch;
+        User result;
+        Throwable error;
+
+        DefaultKinveyUserCallback(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        @Override
+        public void onSuccess(User result) {
+            this.result = result;
+            finish();
+        }
+
+        @Override
+        public void onFailure(Throwable error) {
+            this.error = error;
+            finish();
+        }
+
+        void finish() {
+            latch.countDown();
+        }
+    }
+
+    private static class DefaultKinveyClientCallback implements KinveyClientCallback<Person> {
+
+        private CountDownLatch latch;
+        Person result;
+        Throwable error;
+
+        DefaultKinveyClientCallback(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        @Override
+        public void onSuccess(Person result) {
             this.result = result;
             finish();
         }
@@ -313,9 +403,9 @@ public class UserStoreTest {
         return callback;
     }
 
-
+    // TODO: 09.12.2016 should be checked
     @Test
-//    @Ignore // need to add accessToken,  accessSecret, consumerKey, consumerSecret
+    @Ignore // need to add accessToken,  accessSecret, consumerKey, consumerSecret
     public void testLoginLinkedInAsync() throws InterruptedException {
         String accessToken = "AQXu60okmBXrQkBm5BOpBCBBpCYc3y9uKWHtF559A1j4ttwjf5bXNeq0nVOHtgPomuw9Wn661BYbZal-3IReW0zc-Ed8NvP0FNdOTQVt9c8qz9EL5sezCYKd_I2VPEEMSC-YOyvhi-7WsttjaPnU_9H_kCnfVJuU7Fyt8Ph1XTw66xZeu2U";
         String accessSecret = "ExAZxYxvo42UfOCN";
@@ -357,6 +447,142 @@ public class UserStoreTest {
         return callback;
     }
 
+    // TODO: 09.12.2016 should be checked
+    @Test
+    @Ignore // need to add access,  reauth, clientID, ID
+    public void testLoginSalesforceAsync() throws InterruptedException {
+        String access = "";
+        String reauth = "";
+        String clientID = "";
+        String ID = "";
+        DefaultKinveyLoginCallback userCallback = loginSalesforce(access, reauth, clientID, ID, client);
+        assertNotNull(userCallback.result);
+        assertTrue(client.isUserLoggedIn());
+    }
+
+    @Test
+    public void testLoginSalesforceAsyncBad() throws InterruptedException {
+        String access = "wrongAccess";
+        String reauth = "wrongReauth";
+        String clientID = "wrongClientID";
+        String ID = "wrongID";
+        DefaultKinveyLoginCallback userCallback = loginSalesforce(access, reauth, clientID, ID, client);
+        assertNotNull(userCallback.error);
+        assertFalse(client.isUserLoggedIn());
+    }
+
+    private DefaultKinveyLoginCallback loginSalesforce(final String access, final String reauth, final String clientID, final String ID, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyLoginCallback callback = new DefaultKinveyLoginCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                try {
+                    UserStore.loginSalesForce(access, reauth, clientID, ID, client, callback);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
+
+
+    @Test
+    public void testMIC_LoginWithAuthorizationCodeLoginPage() throws InterruptedException {
+        String redirectURI = "http://test.redirect";
+        DefaultKinveyMICCallback userCallback = loginWithAuthorizationCodeLoginPage(redirectURI, client);
+        assertNotNull(userCallback.myURLToRender);
+        assertTrue(!userCallback.myURLToRender.isEmpty());
+        assertTrue(userCallback.myURLToRender.startsWith(client.getMICHostName() + "oauth/auth?client_id"));
+    }
+
+    private DefaultKinveyMICCallback loginWithAuthorizationCodeLoginPage(final String redirectUrl, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyMICCallback callback = new DefaultKinveyMICCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                UserStore.loginWithAuthorizationCodeLoginPage(client, redirectUrl, callback);
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
+
+
+    @Test
+    public void testMIC_LoginWithAuthorizationCodeAPI() throws InterruptedException {
+        String username = "test";
+        String password = "test";
+        String redirectURI = "kinveyAuthDemo://";
+        String saml_app_key = "kid_H1lH5Dsw";
+        String saml_app_secret = "cc5c72d261d8473590a0fa01024fb313";
+        Context mMockContext = new RenamingDelegatingContext(InstrumentationRegistry.getInstrumentation().getTargetContext(), "test_");
+        Client.Builder localBuilder = new Client.Builder(saml_app_key, saml_app_secret, mMockContext);
+        Client localClient = localBuilder.build();
+        localClient.setMICApiVersion("v2");
+
+        DefaultKinveyUserCallback userCallback = LoginWithAuthorizationCodeAPIAsync(username, password, redirectURI, client);
+        assertNotNull(userCallback.result);
+        UserStore.logout(client);
+    }
+
+    private DefaultKinveyUserCallback LoginWithAuthorizationCodeAPIAsync(final String username, final String password, final String redirectUrl, final Client client) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyUserCallback callback = new DefaultKinveyUserCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                UserStore.loginWithAuthorizationCodeAPI(client, username, password, redirectUrl, callback);
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
+
+
+    // TODO: 09.12.2016 client.logout should be fixed
+    @Test
+    public void testLogout() throws InterruptedException {
+        login(username, password, client);
+        DataStore<Person> personStore = DataStore.collection(Person.COLLECTION, Person.class, StoreType.SYNC, client);
+        Person p = new Person();
+        p.setUsername("TestUser");
+        save(personStore, p);
+
+        DataStore<Person> userStore = DataStore.collection("users", Person.class, StoreType.SYNC, client);
+        Person p2 = new Person();
+        p2.setUsername("TestUser2");
+        save(userStore, p2);
+
+        UserStore.logout(client);
+        client.getCacheManager().getCache("users", Person.class, StoreType.SYNC.ttl).clear();
+
+        assertTrue(!client.isUserLoggedIn());
+
+        assertTrue(client.getSycManager().getCount(Person.COLLECTION) == 0);
+
+    }
+
+    private DefaultKinveyClientCallback save(final DataStore<Person> store, final Person person) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final DefaultKinveyClientCallback callback = new DefaultKinveyClientCallback(latch);
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                store.save(person, callback);
+                Looper.loop();
+            }
+        }).start();
+        latch.await();
+        return callback;
+    }
 
     /*------------------------------------------------------------------------------------------*/
 
