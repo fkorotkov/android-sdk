@@ -60,11 +60,11 @@ public abstract class BaseUserStore {
                 .loginAuthLinkBlocking(accessToken, refreshToken).execute();
     }
 
-    public static User loginSalesForce(String accessToken, String clientId,
-                                       String refreshToken, String id,
+    public static User loginSalesForce(String accessToken, String refreshToken,
+                                       String clientId, String id,
                                        AbstractClient client) throws IOException {
         return new UserStoreRequestManager(client, createBuilder(client))
-                .loginSalesForceBlocking(accessToken, clientId, refreshToken, id).execute();
+                .loginSalesForceBlocking(accessToken, refreshToken, clientId, id).execute();
     }
 
     public static User loginMobileIdentity(String authToken, AbstractClient client) throws IOException {

@@ -273,8 +273,8 @@ public class UserStoreRequestManager {
      * @return LoginRequest Object
      * @throws IOException
      */
-    public LoginRequest loginSalesForceBlocking(String accessToken, String Clientid, String refreshToken, String id) throws IOException {
-        return login(ThirdPartyIdentity.Type.SALESFORCE, accessToken, Clientid, refreshToken, id);
+    public LoginRequest loginSalesForceBlocking(String accessToken, String refreshToken, String ClientId, String id) throws IOException {
+        return login(ThirdPartyIdentity.Type.SALESFORCE, accessToken, refreshToken, ClientId, id);
     }
 
     /**

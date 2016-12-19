@@ -69,7 +69,7 @@ public class UserStore {
 
 
     public static void loginSalesForce(String accessToken, String client_id, String refreshToken, String id, AbstractClient client, KinveyClientCallback<User> callback) throws IOException {
-        new Login(accessToken, client_id, refreshToken, id, client, UserStoreRequestManager.LoginType.SALESFORCE, callback).execute();
+        new Login(accessToken, refreshToken, client_id, id, client, callback).execute();
     }
 
     public static void loginMobileIdentity(String accessToken, AbstractClient client, KinveyClientCallback<User> callback) throws IOException {
@@ -446,13 +446,12 @@ public class UserStore {
         }
 
         //TODO edwardf method signature is ambiguous with above method if this one also took a login type, so hardcoded to salesforce.
-        private Login(String accessToken, String clientID, String refresh, String id, AbstractClient client, KinveyClientCallback<User> callback){
+        private Login(String accessToken, String refreshToken, String clientID, String id, AbstractClient client, KinveyClientCallback<User> callback){
             super(callback);
             this.accessToken = accessToken;
-            this.refreshToken = refresh;
+            this.refreshToken = refreshToken;
             this.client_id = clientID;
             this.id = id;
-            
             this.client = client;
             this.type = UserStoreRequestManager.LoginType.SALESFORCE;
         }
@@ -483,7 +482,7 @@ public class UserStore {
                 case AUTH_LINK:
                     return BaseUserStore.loginAuthLink(accessToken, refreshToken, client);
                 case SALESFORCE:
-                    return BaseUserStore.loginSalesForce(accessToken, client_id, refreshToken, id, client);
+                    return BaseUserStore.loginSalesForce(accessToken, refreshToken, client_id, id, client);
                 case MOBILE_IDENTITY:
                     return BaseUserStore.loginMobileIdentity(accessToken, client);
                 case CREDENTIALSTORE:
