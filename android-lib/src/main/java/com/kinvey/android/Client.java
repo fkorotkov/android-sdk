@@ -88,15 +88,11 @@ public class Client extends AbstractClient {
 
     private Context context = null;
 
-//    private ConcurrentHashMap<String, DataStore> appDataInstanceCache;
-//    private ConcurrentHashMap<String, LinkedDataStore> linkedDataInstanceCache;
-//    private ConcurrentHashMap<String, AsyncCustomEndpoints> customeEndpointsCache;
     private AsyncCustomEndpoints customEndpoints;
     private AbstractPush pushProvider;
     private AsyncUserDiscovery userDiscovery;
     private AsyncUserGroup userGroup;
     private ClientUser clientUser;
-//    private AsyncUser currentUser;
     private long syncRate;
     private long batchRate;
     private int batchSize;
@@ -139,11 +135,12 @@ public class Client extends AbstractClient {
 
     @Override
     public void performLockDown() {
-/*        if(getCacheManager() != null){
+        if (getCacheManager() != null) {
             getCacheManager().clear();
-        }*/
+        }
 
         this.getFileStore(StoreType.SYNC).clearCache();
+
         List<ClientExtension> extensions = getExtensions();
         for (ClientExtension e : extensions){
             e.performLockdown(activeUser().getId());

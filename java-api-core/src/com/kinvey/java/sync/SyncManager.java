@@ -232,4 +232,9 @@ public class SyncManager {
 
         return requestCache.delete(q);
     }
+
+    public void clear() {
+        ICache<SyncRequest> requestCache  = cacheManager.getCache("sync", SyncRequest.class, Long.MAX_VALUE);
+        requestCache.clear();
+    }
 }

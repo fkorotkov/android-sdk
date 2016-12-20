@@ -93,6 +93,9 @@ public class UserStore {
     }
 
     public static void logout(AbstractClient client) {
+        if (client.getSycManager() != null) {
+            client.getSycManager().clear();
+        }
         if(clearStorage) {
             client.performLockDown();
         }

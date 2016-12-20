@@ -25,9 +25,14 @@ import com.kinvey.java.AbstractClient;
 import com.kinvey.java.KinveyException;
 import com.kinvey.java.cache.ICache;
 import com.kinvey.java.cache.ICacheManager;
+import com.kinvey.java.store.StoreType;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import io.realm.DynamicRealm;
@@ -35,6 +40,7 @@ import io.realm.DynamicRealmObject;
 import io.realm.FieldAttribute;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObjectSchema;
+import io.realm.RealmResults;
 import io.realm.RealmSchema;
 
 /**
@@ -128,13 +134,17 @@ public class RealmCacheManager implements ICacheManager {
     public void clear() {
         synchronized (LOCK) {
             DynamicRealm mRealm = getDynamicRealm();
-            Set<RealmObjectSchema> schemas = mRealm.getSchema().getAll();
-            mRealm.beginTransaction();
-            for (RealmObjectSchema schema : schemas) {
-                schema.removePrimaryKey();
-                mRealm.getSchema().remove(schema.getClassName());
+            Collection<RealmCache> collection = mCacheMap.values();
+            for (RealmCache cache : collection) {
+                mRealm.beginTransaction();
+                try {
+                    mRealm.where(cache.getCollection())
+                            .findAll()
+                            .deleteAllFromRealm();
+                } finally {
+                    mRealm.commitTransaction();
+                }
             }
-            mRealm.commitTransaction();
             mRealm.close();
         }
     }
@@ -166,6 +176,17 @@ public class RealmCacheManager implements ICacheManager {
         return res != null ? res.getString("hash") : "";
 
     }
+
+
+    private List<String> getAllCollectionsNames() {
+        Collection<RealmCache> collection = mCacheMap.values();
+        List<String> names = new ArrayList<>();
+        for (RealmCache cache : collection) {
+            names.add(cache.getCollection());
+        }
+        return names;
+    }
+
 
     /**
      * Create hash record for collection to track changes
