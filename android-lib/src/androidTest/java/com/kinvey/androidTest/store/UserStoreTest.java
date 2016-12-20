@@ -585,12 +585,9 @@ public class UserStoreTest {
     }
 
 
-    // TODO: 09.12.2016 client.logout should be fixed
     @Test
-    @Ignore
     public void testLogout() throws InterruptedException {
         login(username, password, client);
-        client.getSycManager().clear(Person.COLLECTION);
         DataStore<Person> personStore = DataStore.collection(Person.COLLECTION, Person.class, StoreType.SYNC, client);
         Person p = new Person();
         p.setUsername("TestUser");
@@ -622,7 +619,6 @@ public class UserStoreTest {
 
     @Test
     public void testLogoutWithNoDatabaseTables() throws InterruptedException {
-        client.getSycManager().clear(Person.COLLECTION);
         login(username, password, client);
         UserStore.logout(client);
         assertTrue(!client.isUserLoggedIn());
@@ -631,7 +627,6 @@ public class UserStoreTest {
 
     @Test
     public void testLogoutWithDatabaseTablesButNoAPICalls() throws InterruptedException {
-        client.getSycManager().clear(Person.COLLECTION);
         login(username, password, client);
         DataStore<Person> personStore = DataStore.collection(Person.COLLECTION, Person.class, StoreType.SYNC, client);
         UserStore.logout(client);
@@ -866,7 +861,6 @@ public class UserStoreTest {
         Context mMockContext = new RenamingDelegatingContext(InstrumentationRegistry.getInstrumentation().getTargetContext(), "test_");
         Client.Builder localBuilder = new Client.Builder(appKey, appSecret, mMockContext);
         Client localClient = localBuilder.build();
-
         DefaultKinveyClientCallback callback = login(username, password, localClient);
         assertNotNull(callback.result);
         User activeUser = callback.result;
