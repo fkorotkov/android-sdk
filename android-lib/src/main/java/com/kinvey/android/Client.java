@@ -841,6 +841,17 @@ public class Client extends AbstractClient {
         }
         
         /**
+         * Builder method to set sender ID for GCM push
+         *
+         * @param requestTimeout - the timeout to request
+         * @return the current instance of the builder
+         */
+        public Client.Builder setRequestTimeout(int requestTimeout) {
+            this.requestTimeout = requestTimeout;
+            return this;
+        }
+
+        /**
         *
         * @see
         * com.kinvey.java.core.AbstractKinveyJsonClient.Builder#setBaseUrl(String)

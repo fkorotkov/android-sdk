@@ -62,7 +62,12 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
      * The default encoded service path of the service.
      */
     public static final String DEFAULT_SERVICE_PATH = "";
-    
+
+    /**
+     * The default timeout to the http request.
+     */
+    public static final int DEFAULT_REQUEST_TIMEOUT = 60*1000;
+
     private CredentialStore store;
 
     /** used to synchronized access to the local api wrappers **/
@@ -78,7 +83,10 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
     
     private GenericData customRequestProperties = new GenericData();
 
-    private int requestTimeout;
+    /**
+     * The timeout to the http request.
+     */
+    private int requestTimeout = DEFAULT_REQUEST_TIMEOUT;
 
     private User user;
     /**
@@ -293,7 +301,7 @@ public abstract class AbstractClient extends AbstractKinveyJsonClient {
     public static abstract class Builder extends AbstractKinveyJsonClient.Builder {
         private CredentialStore store;
         private Properties props = new Properties();
-        protected int requestTimeout;
+        protected int requestTimeout = DEFAULT_REQUEST_TIMEOUT;
 
         /**
          * @param transport              HttpTransport
