@@ -481,6 +481,14 @@ public class Client extends AbstractClient {
                 this.setBaseUrl(super.getString(Option.BASE_URL));
             }
 
+            if (super.getString(Option.REQUEST_TIMEOUT) != null){
+                try {
+                    this.setRequestTimeout(Integer.parseInt(super.getString(Option.REQUEST_TIMEOUT)));
+                } catch (Exception e){
+                    Logger.WARNING(Option.REQUEST_TIMEOUT.name() + " should have an integer value");
+                }
+            }
+
             if (super.getString(Option.PORT) != null){
                 this.setBaseUrl(String.format("%s:%s", super.getBaseUrl(), super.getString(Option.PORT)));
             }
@@ -603,6 +611,14 @@ public class Client extends AbstractClient {
                 this.setBaseUrl(super.getString(Option.BASE_URL));
             }
 
+            if (super.getString(Option.REQUEST_TIMEOUT) != null){
+                try {
+                    this.setRequestTimeout(Integer.parseInt(super.getString(Option.REQUEST_TIMEOUT)));
+                } catch (Exception e){
+                    Logger.WARNING(Option.REQUEST_TIMEOUT.name() + " should have an integer value");
+                }
+            }
+
             if (super.getString(Option.PORT) != null){
                 this.setBaseUrl(String.format("%s:%s", super.getBaseUrl(), super.getString(Option.PORT)));
             }
@@ -690,7 +706,7 @@ public class Client extends AbstractClient {
                     getServicePath(), this.getObjectParser(), getKinveyClientRequestInitializer(), getCredentialStore(),
                     getRequestBackoffPolicy(), this.context);
             client.clientUser = AndroidUserStore.getUserStore(this.context);
-
+            client.setRequestTimeout(requestTimeout);
 
             //GCM explicitely enabled
             if (this.GCM_Enabled){
