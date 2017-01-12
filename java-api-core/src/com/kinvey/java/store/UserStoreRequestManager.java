@@ -191,7 +191,7 @@ public class UserStoreRequestManager {
     public LoginRequest loginBlocking(String username, String password) throws IOException {
         Preconditions.checkNotNull(username, "Username cannot be null.");
         Preconditions.checkNotNull(password, "Password cannot be null.");
-        return new LoginRequest(username, password, false).buildAuthRequest();
+        return new LoginRequest(username, password, null, false).buildAuthRequest();
     }
 
     /**
@@ -362,13 +362,13 @@ public class UserStoreRequestManager {
      *
      * @param username userName of Kinvey user
      * @param password password of Kinvey user
+     * @param email email of Kinvey user
      * @return LoginRequest Object
      * @throws IOException
      */
-    public LoginRequest createBlocking(String username, String password) throws IOException {
-        return new LoginRequest(username, password, true).buildAuthRequest();
+    public LoginRequest createBlocking(String username, String password, String email) throws IOException {
+        return new LoginRequest(username, password, email, true).buildAuthRequest();
     }
-
 
     /**
      * Delete's the given user from the server.
@@ -655,12 +655,18 @@ public class UserStoreRequestManager {
             this.type = UserStoreRequestManager.LoginType.IMPLICIT;
         }
 
-        public LoginRequest(String username, String password, boolean setCreate) {
+
+        public LoginRequest(String username, String password, String email, boolean setCreate) {
             builder.setUsernameAndPassword(username, password);
             builder.setCreate(setCreate);
-            builder.setUser(client.getActiveUser());
+            if (email != null) {
+                User user = new User();
+                user.put("email", email);
+                builder.setUser(user);
+            } else {
+                builder.setUser(client.getActiveUser());
+            }
             this.type = UserStoreRequestManager.LoginType.KINVEY;
-
         }
 
         public LoginRequest(ThirdPartyIdentity identity) {

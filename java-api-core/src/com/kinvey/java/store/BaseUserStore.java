@@ -12,8 +12,8 @@ import java.io.IOException;
 
 public abstract class BaseUserStore {
 
-    public static User signUp(String userId, String password, AbstractClient client) throws IOException {
-        return new UserStoreRequestManager(client, createBuilder(client)).createBlocking(userId, password).execute();
+    public static User signUp(String userId, String password, String email, AbstractClient client) throws IOException {
+        return new UserStoreRequestManager(client, createBuilder(client)).createBlocking(userId, password, email).execute();
     }
 
     /*Deletes a 'User'*/

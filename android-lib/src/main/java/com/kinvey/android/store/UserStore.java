@@ -36,7 +36,11 @@ public class UserStore {
     private static String MICRedirectURI;
 
     public static void signUp(String username, String password, AbstractClient client, KinveyClientCallback<User> callback) {
-        new Create(username, password, client, callback).execute();
+        signUp(username, password, null, client,callback);
+    }
+
+    public static void signUp(String username, String password, String email, AbstractClient client, KinveyClientCallback<User> callback) {
+        new Create(username, password, email, client, callback).execute();
     }
 
     public static void login(AbstractClient client, KinveyClientCallback<User> callback) throws IOException {
@@ -502,20 +506,21 @@ public class UserStore {
     private static class Create extends AsyncClientRequest<User> {
         String username;
         String password;
+        String email;
         private final AbstractClient client;
         
 
-        private Create(String username, String password, AbstractClient client, KinveyClientCallback callback) {
+        private Create(String username, String password, String email, AbstractClient client, KinveyClientCallback callback) {
             super(callback);
             this.username=username;
             this.password=password;
+            this.email = email;
             this.client = client;
-            
         }
 
         @Override
         protected User executeAsync() throws IOException {
-            return BaseUserStore.signUp(username, password, client);
+            return BaseUserStore.signUp(username, password, email, client);
         }
     }
 
