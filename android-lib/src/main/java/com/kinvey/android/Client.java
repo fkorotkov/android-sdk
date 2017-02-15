@@ -39,6 +39,7 @@ import com.kinvey.android.push.GCMPush;
 import com.kinvey.android.store.FileStore;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.ClientExtension;
+import com.kinvey.java.KinveyException;
 import com.kinvey.java.Logger;
 import com.kinvey.java.auth.ClientUser;
 import com.kinvey.java.auth.Credential;
@@ -133,7 +134,10 @@ public class Client extends AbstractClient {
         syncCacheManager = new RealmCacheManager("sync_", this);
     }
 
-    public static Client sharedInstance(){
+    public static Client sharedInstance() {
+        if (_sharedInstance == null || _sharedInstance.isInitialize()) {
+            throw new KinveyException("No client is currently initialized", "call new Client(...) first to initialize client", "For using Client.sharedInstance() needs a initialized Client instance.");
+        }
     	return _sharedInstance;
     }
 
