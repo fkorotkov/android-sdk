@@ -134,6 +134,15 @@ public class Client extends AbstractClient {
         syncCacheManager = new RealmCacheManager("sync_", this);
     }
 
+    /**
+     * Get Client instance method
+     *
+     *<p>
+     * Client must be initialized before using this method, else method will be throw KinveyException
+     *</p>
+     *
+     * @return Instance of {@link com.kinvey.android.Client}
+     */
     public static Client sharedInstance() {
         if (_sharedInstance == null || _sharedInstance.isInitialize()) {
             throw new KinveyException("No client is currently initialized", "call new Client(...) first to initialize client", "For using Client.sharedInstance() needs a initialized Client instance.");
