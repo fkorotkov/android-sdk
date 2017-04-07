@@ -18,12 +18,17 @@ package com.kinvey.java.core;
 import java.io.*;
 import java.net.UnknownHostException;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.api.client.http.*;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.util.Charsets;
 import com.google.api.client.util.GenericData;
 import com.google.api.client.util.Key;
+import com.google.api.client.util.ObjectParser;
 import com.google.common.base.Preconditions;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.KinveyException;
@@ -41,6 +46,8 @@ import org.apache.http.conn.ConnectTimeoutException;
  */
 public abstract class AbstractKinveyClientRequest<T> extends GenericData {
 
+
+    private static final Lock REFRESH_TOCKEN_LOCK = new ReentrantLock();
 
     /**
      * Kinvey JSON client *
@@ -334,6 +341,9 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
      * @throws IOException
      */
     HttpResponse executeUnparsed(boolean upload) throws IOException {
+
+        Credential userCredentials = client.getStore().load(client.user().getId());
+
         HttpResponse response;
         boolean throwExceptionOnError;
 
@@ -360,37 +370,51 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
             this.client.performLockDown();
         }
 
-        //process refresh token needed
-        if (response.getStatusCode() == 401 && !hasRetryed){
+        REFRESH_TOCKEN_LOCK.lock();
 
+        try {
+            //process refresh token needed
 
-            //get the refresh token
-            Credential cred = client.getStore().load(client.user().getId());
-            String refreshToken = null;
-            if (cred != null){
-                refreshToken = cred.getRefreshToken();
+            //check if credentials have been updated
+            Credential newCredentials = client.getStore().load(client.user().getId());
+            boolean authTokenChanged = (newCredentials != null &&
+                    (userCredentials == null || !userCredentials.getAuthToken().equals(newCredentials.getAuthToken())));
+
+            if (response.getStatusCode() == 401 && !hasRetryed) {
+                if(authTokenChanged) {
+                    hasRetryed = true;
+                    return executeUnparsed();
+                } else {
+                    //get the refresh token
+                    Credential cred = client.getStore().load(client.user().getId());
+                    String refreshToken = null;
+                    if (cred != null) {
+                        refreshToken = cred.getRefreshToken();
+                    }
+
+                    if (refreshToken != null) {
+                        //logout the current user
+
+                        client.user().logout().execute();
+
+                        //use the refresh token for a new access token
+                        GenericJson result = client.user().useRefreshToken(refreshToken).execute();
+
+                        //login with the access token
+                        client.user().loginMobileIdentityBlocking(result.get("access_token").toString()).execute();
+
+                        //store the new refresh token
+                        Credential currentCred = client.getStore().load(client.user().getId());
+                        currentCred.setRefreshToken(result.get("refresh_token").toString());
+                        client.getStore().store(client.user().getId(), currentCred);
+                        client.initializeRequest(this);
+                        hasRetryed = true;
+                        return executeUnparsed();
+                    }
+                }
             }
-
-            if (refreshToken != null ){
-                //logout the current user
-
-                client.user().logout().execute();
-
-                //use the refresh token for a new access token
-                GenericJson result = client.user().useRefreshToken(refreshToken).execute();
-
-                //login with the access token
-                client.user().loginMobileIdentityBlocking(result.get("access_token").toString()).execute();
-
-                //store the new refresh token
-                Credential currentCred = client.getStore().load(client.user().getId());
-                currentCred.setRefreshToken(result.get("refresh_token").toString());
-                client.getStore().store(client.user().getId(), currentCred);
-                client.initializeRequest(this);
-                hasRetryed = true;
-                return executeUnparsed();
-            }
-
+        } finally {
+            REFRESH_TOCKEN_LOCK.unlock();
         }
 
         // process any other errors

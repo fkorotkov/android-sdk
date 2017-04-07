@@ -264,7 +264,7 @@ public class OfflineTable<T extends GenericJson> {
 
 
                     for (int i = 0; i < resultIDs.length; i++) {
-                        ret[i] = getEntity(handler, client, resultIDs[i], singleClass, req);
+                        ret[i] = (T) getEntity(handler, client, resultIDs[i], singleClass, req);
                     }
                 }
             }

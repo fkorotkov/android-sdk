@@ -114,7 +114,7 @@ public class User<T extends User> extends GenericJson   {
      */
     public String MICHostName = "https://auth.kinvey.com/";
     
-    public String MICApiVersion;
+    public String MICApiVersion = "v1";
     
     public void setMICApiVersion(String version){
     	if (!version.startsWith("v")){
