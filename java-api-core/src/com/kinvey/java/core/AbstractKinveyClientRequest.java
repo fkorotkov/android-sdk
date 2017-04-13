@@ -1,4 +1,4 @@
-/** 
+/**
  * Copyright (c) 2014, Kinvey, Inc. All rights reserved.
  *
  * This software is licensed to you under the Kinvey terms of service located at
@@ -11,7 +11,7 @@
  * KINVEY, INC and is subject to applicable licensing agreements.
  * Unauthorized reproduction, transmission or distribution of this file and its
  * contents is a violation of applicable laws.
- * 
+ *
  */
 package com.kinvey.java.core;
 
@@ -34,6 +34,7 @@ import com.kinvey.java.AbstractClient;
 import com.kinvey.java.KinveyException;
 import com.kinvey.java.Logger;
 import com.kinvey.java.auth.Credential;
+import com.kinvey.java.auth.CredentialStore;
 import com.kinvey.java.offline.FileCache;
 import com.kinvey.java.offline.FilePolicy;
 import com.kinvey.java.offline.MediaOfflineDownloader;
@@ -108,12 +109,12 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
      * Does this request require the appkey/appsecret for authentication or does it require a user context
      */
     private boolean requireAppCredentials = false;
-    
+
     /**
      * Should the request use the default template expansion for encoding the URL
      */
     private boolean templateExpand = true;
-    
+
     /**
      * Should the request intercept redirects and route them to an override
      */
@@ -128,14 +129,14 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
      * The message received when a user has been locked down
      */
     private static final String LOCKED_DOWN = "UserLockedDown";
-    
+
     private final String hostName;
-    
+
     /***
      * Used for MIC to indicate if a request has been repeated after getting a refresh token
      */
     private boolean hasRetryed = false;
-    
+
     /**
      * @param abstractKinveyClient the abstract kinvey client
      * @param requestMethod the request method, PUT, GET, POST, or DELETE
@@ -148,7 +149,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
                                           Class<T> responseClass) {
     	this(abstractKinveyClient, abstractKinveyClient.getBaseUrl(), requestMethod, uriTemplate, httpContent, responseClass);
     }
-    
+
     /**
      * @param abstractKinveyClient the abstract kinvey client
      * @param requestMethod the request method, PUT, GET, POST, or DELETE
@@ -169,8 +170,8 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
         this.requestBackoffPolicy = abstractKinveyClient.getBackoffPolicy();
         this.hostName = hostName;
     }
-    
-    
+
+
 
     /**
      * @return the abstractKinveyClient
@@ -273,7 +274,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
      * @return
      */
     protected GenericUrl buildHttpRequestUrl() {
-    	
+
     	String encodedURL = UriTemplate.expand(hostName, uriTemplate, this, true);
     	if (!templateExpand){
     		encodedURL = encodedURL.replace("%3F", "?");
@@ -341,8 +342,12 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
      * @throws IOException
      */
     HttpResponse executeUnparsed(boolean upload) throws IOException {
-
-        Credential userCredentials = client.getStore().load(client.user().getId());
+        System.out.println("KINVEY_TEST: start request");
+        CredentialStore store = client.getStore();
+        Credential userCredentials = null;
+        if (store != null) {
+            userCredentials = client.getStore().load(client.user().getId());
+        }
 
         HttpResponse response;
         boolean throwExceptionOnError;
@@ -375,30 +380,37 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
         try {
             //process refresh token needed
 
+            boolean authTokenChanged = false;
+
             //check if credentials have been updated
-            Credential newCredentials = client.getStore().load(client.user().getId());
-            boolean authTokenChanged = (newCredentials != null &&
-                    (userCredentials == null || !userCredentials.getAuthToken().equals(newCredentials.getAuthToken())));
+            if (userCredentials != null) {
+                Credential newCredentials = client.getStore().load(client.user().getId());
+                authTokenChanged = newCredentials != null && !userCredentials.getAuthToken().equals(newCredentials.getAuthToken());
+            }
 
             if (response.getStatusCode() == 401 && !hasRetryed) {
                 if(authTokenChanged) {
                     hasRetryed = true;
                     return executeUnparsed();
                 } else {
+                    System.out.println("KINVEY_TEST: start refresh token");
                     //get the refresh token
                     Credential cred = client.getStore().load(client.user().getId());
                     String refreshToken = null;
                     if (cred != null) {
+                        System.out.println("KINVEY_TEST: cred != null");
                         refreshToken = cred.getRefreshToken();
                     }
 
                     if (refreshToken != null) {
+                        System.out.println("KINVEY_TEST: refresh Token != null");
                         //logout the current user
 
                         client.user().logout().execute();
 
                         //use the refresh token for a new access token
                         GenericJson result = client.user().useRefreshToken(refreshToken).execute();
+                        System.out.println("KINVEY_TEST: current refresh Token: " + refreshToken);
 
                         //login with the access token
                         client.user().loginMobileIdentityBlocking(result.get("access_token").toString()).execute();
@@ -406,9 +418,13 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
                         //store the new refresh token
                         Credential currentCred = client.getStore().load(client.user().getId());
                         currentCred.setRefreshToken(result.get("refresh_token").toString());
+
+                        System.out.println("KINVEY_TEST: neew refresh Token: " + currentCred.getRefreshToken());
+
                         client.getStore().store(client.user().getId(), currentCred);
                         client.initializeRequest(this);
                         hasRetryed = true;
+                        System.out.println("KINVEY_TEST: finish refresh token");
                         return executeUnparsed();
                     }
                 }
@@ -422,6 +438,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
             throw newExceptionOnError(response);
         }
 
+        System.out.println("KINVEY_TEST: finish request");
         return response;
     }
 
@@ -447,17 +464,17 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
         } catch (Exception e){
             throw new KinveyException(KinveyClientErrorCode.RequestError, e);
         }
-       
+
         if (overrideRedirect){
         	return onRedirect(response.getHeaders().getLocation());
         }
-        
+
         // special class to handle void or empty responses
         if (Void.class.equals(responseClass) || response.getContent() == null) {
             response.ignore();
             return null;
         }
-        
+
         try{
             int statusCode = response.getStatusCode();
             if (response.getRequest().getRequestMethod().equals(HttpMethods.HEAD) || statusCode / 100 == 1
@@ -469,7 +486,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
             }else{
                 return getAbstractKinveyClient().getObjectParser().parseAndClose(response.getContent(), Charsets.UTF_8, responseClass);
             }
-            
+
         }catch(IllegalArgumentException e){
             Logger.ERROR("unable to parse response -> " + e.toString());
             throw new KinveyException(KinveyClientErrorCode.CantParseJson, e);
@@ -538,7 +555,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
     public boolean isRequireAppCredentials() {
         return requireAppCredentials;
     }
-    
+
     public void setTemplateExpand(boolean expand){
     	this.templateExpand = expand;
     }
@@ -554,7 +571,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
     public void setCallback(KinveyClientCallback<T> callback) {
         this.callback = callback;
     }
-    
+
     public String getCustomerAppVersion(){
     	Object header = getRequestHeaders().get("X-Kinvey-Client-App-Version");
     	if (header == null){
@@ -562,7 +579,7 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
     	}
     	return header.toString();
     }
-    
+
     public String getCustomRequestProperties(){
     	Object header = getRequestHeaders().get("X-Kinvey-Custom-Request-Properties");
     	if (header == null){
@@ -570,11 +587,11 @@ public abstract class AbstractKinveyClientRequest<T> extends GenericData {
     	}
     	return (String) header;
     }
-    
+
     public void setOverrideRedirect(boolean override){
     	this.overrideRedirect = override;
     }
-    
+
     public T onRedirect(String newLocation)  throws IOException{
     	Logger.ERROR("Override Redirect in response is expected, but not implemented!");
     	return null;
