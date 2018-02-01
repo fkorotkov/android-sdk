@@ -56,6 +56,7 @@ public class BaseDataStore<T extends GenericJson> {
     private Class<T> storeItemType;
     private ICache<T> cache;
     protected NetworkManager<T> networkManager;
+    public static int MS = 1000000;
 
     /**
      * It is a parameter to enable mechanism to optimize the amount of data retrieved from the backend.
@@ -398,9 +399,20 @@ public class BaseDataStore<T extends GenericJson> {
             response.setResult(networkData);
             response.setListOfExceptions(exceptions);
         } else {
+            long startTime = System.nanoTime();
+            long finishTime;
+            System.out.println("Start measurement:");
             response = networkManager.pullBlocking(query, cache, isDeltaSetCachingEnabled()).execute();
+            finishTime = System.nanoTime();
+            System.out.println("Total network operation:" + (finishTime - startTime)/MS);
+            startTime = System.nanoTime();
             cache.delete(query);
+            finishTime = System.nanoTime();
+            System.out.println("Realm cache delete: " + (finishTime - startTime)/MS);
+            startTime = System.nanoTime();
             cache.save(response.getResult());
+            finishTime = System.nanoTime();
+            System.out.println("Realm cache save: " +(finishTime - startTime)/MS);
         }
 
         return response;

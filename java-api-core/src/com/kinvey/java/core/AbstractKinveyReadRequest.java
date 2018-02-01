@@ -13,6 +13,7 @@ import com.kinvey.java.AbstractClient;
 import com.kinvey.java.KinveyException;
 import com.kinvey.java.Logger;
 import com.kinvey.java.model.KinveyAbstractReadResponse;
+import com.kinvey.java.store.BaseDataStore;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,8 +44,12 @@ public abstract class AbstractKinveyReadRequest<T> extends AbstractKinveyJsonCli
 
     @Override
     public KinveyAbstractReadResponse<T> execute() throws IOException {
-
+        long finishTime;
+        long startTime = System.nanoTime();
         HttpResponse response = executeUnparsed() ;
+        finishTime = System.nanoTime();
+        System.out.println("Network fetch time:" + (finishTime - startTime)/BaseDataStore.MS);
+        startTime = System.nanoTime();
 
         List<T> results = new ArrayList<>();
         List<Exception> exceptions = new ArrayList<>();
@@ -71,6 +76,9 @@ public abstract class AbstractKinveyReadRequest<T> extends AbstractKinveyJsonCli
 
             } else {
                 String jsonString = response.parseAsString();
+                finishTime = System.nanoTime();
+                System.out.println("Response stream conversion:" + (finishTime - startTime)/BaseDataStore.MS);
+                startTime = System.nanoTime();
                 JsonParser jsonParser = new JsonParser();
                 JsonArray jsonArray = (JsonArray) jsonParser.parse(jsonString);
                 JsonObjectParser objectParser = getAbstractKinveyClient().getObjectParser();
@@ -85,6 +93,8 @@ public abstract class AbstractKinveyReadRequest<T> extends AbstractKinveyJsonCli
                         exceptions.add(e);
                     }
                 }
+                finishTime = System.nanoTime();
+                System.out.println("JSON deserailization:" + (finishTime - startTime)/BaseDataStore.MS);
                 ret.setResult(results);
                 ret.setListOfExceptions(exceptions);
                 return ret;
