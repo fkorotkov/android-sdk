@@ -1,0 +1,31 @@
+<resources>
+
+    <!--Action-->
+    <string name="app_name">Benchmark</string>
+    <string name="action_pull10k">Pull 10k</string>
+    <string name="action_pull50k">Pull 50k</string>
+    <string name="action_pull100k">Pull 100k</string>
+    <string name="action_logout">Logout</string>
+    <string name="action_login">Login</string>
+
+    <!--Toast-->
+    <string name="toast_empty_name">Name could not be empty</string>
+    <string name="toast_can_not_login">Can\'t login to app</string>
+    <string name="toast_sign_in_completed">Login completed</string>
+    <string name="toast_sign_up_completed">Sign up completed</string>
+    <string name="toast_can_not_sign_up">Can\'t sign up to app</string>
+    <string name="toast_successful">Successful</string>
+    <string name="toast_unsuccessful">Unsuccessful</string>
+    <string name="toast_pull_completed">Pull completed</string>
+    <string name="toast_pull_failed">Pull failed</string>
+    <string name="toast_logout_completed">Logout completed</string>
+    <string name="toast_logout_failed">Logout failed</string>
+
+    <!--Progress Dialog-->
+    <string name="progress_login">Login</string>
+    <string name="progress_sign_up">Sign up</string>
+    <string name="progress_logout">Logout</string>
+    <string name="progress_find">Finding</string>
+    <string name="progress_pull">Pulling</string>
+
+</resources>
