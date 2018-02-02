@@ -56,7 +56,7 @@ public class BaseDataStore<T extends GenericJson> {
     private Class<T> storeItemType;
     private ICache<T> cache;
     protected NetworkManager<T> networkManager;
-    public static int MS = 1000000;
+    public static double MS = 1000000000.0;
 
     /**
      * It is a parameter to enable mechanism to optimize the amount of data retrieved from the backend.
