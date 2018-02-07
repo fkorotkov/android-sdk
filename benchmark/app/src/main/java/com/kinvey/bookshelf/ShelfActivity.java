@@ -1,6 +1,7 @@
 package com.kinvey.bookshelf;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -26,7 +27,7 @@ public class ShelfActivity extends AppCompatActivity implements AdapterView.OnIt
 
     private final String TAG = "Performance Test: ";
     private final int LIMIT = 10000; //10k items
-    private final int MS = 1000000; // to convert nanoseconds to milliseconds
+    private final double MS = 1000000.0; // to convert nanoseconds to milliseconds
 
     private Client client;
     private DataStore<HierarchyCache> store;
@@ -79,8 +80,16 @@ public class ShelfActivity extends AppCompatActivity implements AdapterView.OnIt
             case R.id.action_logout:
                 logout();
                 break;
+            case R.id.action_open_cache_benchmark:
+                openCacheBenchmark();
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openCacheBenchmark() {
+        Intent intent = new Intent(this, CacheBenchmarkActivity.class);
+        startActivity(intent);
     }
 
     private void pull(final int skip, final int items) {

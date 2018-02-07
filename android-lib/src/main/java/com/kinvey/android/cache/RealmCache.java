@@ -41,6 +41,8 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
+import static com.kinvey.java.store.BaseDataStore.MS;
+
 /**
  * Created by Prots on 1/26/16.
  */
@@ -69,6 +71,7 @@ public class RealmCache<T extends GenericJson> implements ICache<T> {
         DynamicRealm mRealm = mCacheManager.getDynamicRealm();
         List<T> ret = new ArrayList<T>();
         try {
+            long startTime = System.nanoTime();
             RealmQuery<DynamicRealmObject> realmQuery = mRealm.where(TableNameManager.getShortName(mCollection, mRealm))
                     .greaterThanOrEqualTo(ClassHash.TTL, Calendar.getInstance().getTimeInMillis());
             boolean isIgnoreIn = isQueryContainsInOperator(query.getQueryFilterMap());
@@ -79,19 +82,25 @@ public class RealmCache<T extends GenericJson> implements ICache<T> {
             int limit = query.getLimit();
             int skip = query.getSkip();
 
-            objects = realmQuery.findAllSorted(SORT_FIELD);
 
+            objects = realmQuery.findAllSorted(SORT_FIELD);
+            System.out.println("Get items from realm (query): " + (System.nanoTime() - startTime)/MS);
+            startTime = System.nanoTime();
             for (Iterator<DynamicRealmObject> iterator = objects.iterator(); iterator.hasNext(); ) {
                 DynamicRealmObject obj = iterator.next();
                 ret.add(ClassHash.realmToObject(obj, mCollectionItemClass));
             }
+            System.out.println("Deserialization (query): " + (System.nanoTime() - startTime)/MS);
 
             if (isIgnoreIn) {
+                startTime = System.nanoTime();
                 checkCustomInQuery(query.getQueryFilterMap(), ret);
+                System.out.println("CheckCustomInQuery (query): " + (System.nanoTime() - startTime)/MS);
             }
 
             //own sorting implementation
             if (sortingOrders != null && sortingOrders.size() > 0) {
+                startTime = System.nanoTime();
                 Collections.sort(ret, new Comparator<T>() {
                     @Override
                     public int compare(T lhs, T rhs) {
@@ -139,22 +148,27 @@ public class RealmCache<T extends GenericJson> implements ICache<T> {
                         return sortRet;
                     }
                 });
+                System.out.println("Own sorting (query): " + (System.nanoTime() - startTime)/MS);
             }
 
 
             //own skipping implementation
             if (skip > 0) {
+                startTime = System.nanoTime();
                 for (int i = 0; i < skip; i++) {
                     if (ret.size() > 0) {
                         ret.remove(0);
                     }
                 }
+                System.out.println("Own skip (query): " + (System.nanoTime() - startTime)/MS);
             }
 
 
             //own limit implementation
             if (limit > 0 && ret.size() > limit) {
+                startTime = System.nanoTime();
                 ret = ret.subList(0, limit);
+                System.out.println("Own Limit (query): " + (System.nanoTime() - startTime)/MS);
             }
         } finally {
             mRealm.close();    
@@ -225,15 +239,19 @@ public class RealmCache<T extends GenericJson> implements ICache<T> {
         List<T> ret = new ArrayList<T>();
         try {
             mRealm.beginTransaction();
+            long startTime = System.nanoTime();
             RealmQuery<DynamicRealmObject> query = mRealm.where(TableNameManager.getShortName(mCollection, mRealm))
                     .greaterThanOrEqualTo(ClassHash.TTL, Calendar.getInstance().getTimeInMillis());
 
             RealmResults<DynamicRealmObject> objects = query
                     .findAllSorted(SORT_FIELD);
+            System.out.println("Get items from realm: " + (System.nanoTime() - startTime)/MS);
 
+            startTime = System.nanoTime();
             for (DynamicRealmObject obj : objects) {
                 ret.add(ClassHash.realmToObject(obj, mCollectionItemClass));
             }
+            System.out.println("Deserialization: " + (System.nanoTime() - startTime)/MS);
             mRealm.commitTransaction();
         } finally {
             mRealm.close();

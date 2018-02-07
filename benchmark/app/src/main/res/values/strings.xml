@@ -7,6 +7,7 @@
     <string name="action_pull100k">Pull 100k</string>
     <string name="action_logout">Logout</string>
     <string name="action_login">Login</string>
+    <string name="action_open_cache_benchmark">Open Cache Benchmark</string>
 
     <!--Toast-->
     <string name="toast_empty_name">Name could not be empty</string>
@@ -27,5 +28,12 @@
     <string name="progress_logout">Logout</string>
     <string name="progress_find">Finding</string>
     <string name="progress_pull">Pulling</string>
+
+    <!-- Items-->
+    <string name="create_items">Create item(s)</string>
+    <string name="get_items_all_with_query">Get all items by query</string>
+    <string name="get_items_all">Get all items</string>
+    <string name="get_items_one">Get one item</string>
+    <string name="creating_items">Creating items</string>
 
 </resources>
