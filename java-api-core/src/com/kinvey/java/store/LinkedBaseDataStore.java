@@ -16,9 +16,21 @@
 
 package com.kinvey.java.store;
 
+import com.google.common.base.Preconditions;
 import com.kinvey.java.AbstractClient;
 import com.kinvey.java.LinkedResources.LinkedGenericJson;
+import com.kinvey.java.MimeTypeFinder;
+import com.kinvey.java.core.DownloaderProgressListener;
+import com.kinvey.java.core.UploaderProgressListener;
 import com.kinvey.java.network.LinkedNetworkManager;
+import com.kinvey.java.network.NetworkManager;
+import com.kinvey.java.store.requests.data.read.ReadSingleRequest;
+import com.kinvey.java.store.requests.data.save.SaveRequest;
+
+import java.io.IOException;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class LinkedBaseDataStore<T extends LinkedGenericJson> extends BaseDataStore<T> {
     /**
@@ -29,8 +41,24 @@ public class LinkedBaseDataStore<T extends LinkedGenericJson> extends BaseDataSt
      * @param itemType   class that data should be mapped to
      * @param storeType  type of storage that client want to use
      */
-    public LinkedBaseDataStore(AbstractClient client, String collection, Class<T> itemType, StoreType storeType) {
+    public LinkedBaseDataStore(AbstractClient client, String collection, Class<T> itemType, StoreType storeType, MimeTypeFinder finder) {
         super(client, collection, itemType, storeType,
-                new LinkedNetworkManager<T>(collection, itemType, client));
+                new LinkedNetworkManager<T>(collection, itemType, client, finder));
     }
+
+    @Nonnull
+    public T saveBlocking(@Nonnull T object, @Nullable UploaderProgressListener progressListener) throws IOException {
+        Preconditions.checkNotNull(client, "client must not be null.");
+        Preconditions.checkArgument(client.isInitialize(), "client must be initialized.");
+        Preconditions.checkNotNull(object, "object must not be null.");
+        return new SaveRequest<T>(cache, networkManager, this.storeType.writePolicy, object, client.getSyncManager(), progressListener).execute();
+    }
+
+    @Nonnull
+    public T findBlocking(@Nonnull String id, @Nullable DownloaderProgressListener progressListener) throws IOException {
+        Preconditions.checkNotNull(client, "client must not be null.");
+        Preconditions.checkArgument(client.isInitialize(), "client must be initialized.");
+        return new ReadSingleRequest<>(cache, id, this.storeType.readPolicy, networkManager, progressListener).execute();
+    }
+
 }

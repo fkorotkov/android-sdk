@@ -17,7 +17,10 @@
 package com.kinvey.java.store.requests.data.read;
 
 import com.google.api.client.json.GenericJson;
+import com.kinvey.java.LinkedResources.LinkedGenericJson;
 import com.kinvey.java.cache.ICache;
+import com.kinvey.java.core.DownloaderProgressListener;
+import com.kinvey.java.network.LinkedNetworkManager;
 import com.kinvey.java.network.NetworkManager;
 import com.kinvey.java.store.ReadPolicy;
 import com.kinvey.java.store.requests.data.AbstractKinveyDataRequest;
@@ -33,6 +36,7 @@ public class ReadSingleRequest<T extends GenericJson> extends AbstractKinveyData
     private String id;
     private final ReadPolicy readPolicy;
     private NetworkManager<T> networkManager;
+    private DownloaderProgressListener progressListener;
 
     public ReadSingleRequest(ICache<T> cache, String id, ReadPolicy readPolicy, NetworkManager<T> networkManager) {
 
@@ -40,6 +44,15 @@ public class ReadSingleRequest<T extends GenericJson> extends AbstractKinveyData
         this.id = id;
         this.readPolicy = readPolicy;
         this.networkManager = networkManager;
+    }
+
+    public ReadSingleRequest(ICache<T> cache, String id, ReadPolicy readPolicy, NetworkManager<T> networkManager,
+                             DownloaderProgressListener progressListener) {
+        this.cache = cache;
+        this.id = id;
+        this.readPolicy = readPolicy;
+        this.networkManager = networkManager;
+        this.progressListener = progressListener;
     }
 
     @Override
@@ -50,7 +63,11 @@ public class ReadSingleRequest<T extends GenericJson> extends AbstractKinveyData
                 ret = cache.get(id);
                 break;
             case FORCE_NETWORK: // Logic for getting cached data implemented before running Request
-                ret = networkManager.getEntityBlocking(id).execute();
+                if (networkManager instanceof LinkedNetworkManager) {
+                    ret = (T) ((LinkedNetworkManager) networkManager).getEntityBlocking(id, progressListener).execute();
+                } else {
+                    ret = networkManager.getEntityBlocking(id).execute();
+                }
                 break;
             case BOTH:
                 ret = networkManager.getEntityBlocking(id).execute();

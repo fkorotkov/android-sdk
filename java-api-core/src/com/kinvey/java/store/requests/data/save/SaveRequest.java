@@ -18,7 +18,11 @@ package com.kinvey.java.store.requests.data.save;
 
 import com.google.api.client.json.GenericJson;
 import com.kinvey.java.Constants;
+import com.kinvey.java.LinkedResources.LinkedGenericJson;
 import com.kinvey.java.cache.ICache;
+import com.kinvey.java.core.DownloaderProgressListener;
+import com.kinvey.java.core.UploaderProgressListener;
+import com.kinvey.java.network.LinkedNetworkManager;
 import com.kinvey.java.network.NetworkManager;
 import com.kinvey.java.store.WritePolicy;
 import com.kinvey.java.store.requests.data.IRequest;
@@ -36,6 +40,7 @@ public class SaveRequest<T extends GenericJson> implements IRequest<T> {
     private final T object;
     private final WritePolicy writePolicy;
     private SyncManager syncManager;
+    private UploaderProgressListener progressListener;
     private NetworkManager<T> networkManager;
 
     public SaveRequest(ICache<T> cache, NetworkManager<T> networkManager,
@@ -46,6 +51,18 @@ public class SaveRequest<T extends GenericJson> implements IRequest<T> {
         this.object = object;
         this.writePolicy = writePolicy;
         this.syncManager = syncManager;
+    }
+
+    public SaveRequest(ICache<T> cache, NetworkManager<T> networkManager,
+                       WritePolicy writePolicy, T object,
+                       SyncManager syncManager,
+                       UploaderProgressListener progressListener) {
+        this.networkManager = networkManager;
+        this.cache = cache;
+        this.object = object;
+        this.writePolicy = writePolicy;
+        this.syncManager = syncManager;
+        this.progressListener = progressListener;
     }
 
     @Override
@@ -94,7 +111,11 @@ public class SaveRequest<T extends GenericJson> implements IRequest<T> {
                 cache.save(ret);
                 break;
             case FORCE_NETWORK:
-                ret = networkManager.saveBlocking(object).execute();
+                if (networkManager instanceof LinkedNetworkManager) {
+                    ret = (T) ((LinkedNetworkManager) networkManager).saveBlocking((LinkedGenericJson) object, progressListener).execute();
+                } else {
+                    ret = networkManager.saveBlocking(object).execute();
+                }
                 break;
         }
         return ret;

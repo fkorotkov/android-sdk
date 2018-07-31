@@ -17,6 +17,7 @@
 package com.kinvey.java.LinkedResources;
 
 import com.google.api.client.json.GenericJson;
+import com.google.api.client.util.Key;
 
 import java.util.HashMap;
 
@@ -33,6 +34,8 @@ import java.util.HashMap;
  * @since 2.0
  */
 public abstract class LinkedGenericJson extends GenericJson {
+
+    @Key
     private HashMap<String, LinkedFile> files;
 
     /**

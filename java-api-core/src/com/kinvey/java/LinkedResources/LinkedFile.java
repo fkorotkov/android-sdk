@@ -17,6 +17,8 @@
 package com.kinvey.java.LinkedResources;
 
 
+import com.google.api.client.util.Key;
+
 import java.io.*;
 import java.util.HashMap;
 
@@ -34,7 +36,9 @@ import java.util.HashMap;
  */
 public class LinkedFile {
 
+    @Key("_id")
     private String id;
+    @Key
     private String fileName;
     private ByteArrayInputStream input = null;
     private ByteArrayOutputStream output = null;

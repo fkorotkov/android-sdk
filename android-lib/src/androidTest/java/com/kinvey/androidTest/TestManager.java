@@ -31,7 +31,9 @@ import com.kinvey.java.network.NetworkManager;
 import com.kinvey.java.store.BaseDataStore;
 import com.kinvey.java.store.StoreType;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -523,5 +525,15 @@ public class TestManager<T extends GenericJson> {
     //use for Person.COLLECTION and for Person.class
     public long getCacheSize(StoreType storeType, Client client) {
         return client.getCacheManager().getCache(Person.COLLECTION, Person.class, storeType.ttl).get().size();
+    }
+
+    public File createFile(Client client, String fileName, int fileSize) throws IOException {
+        File file = new File(client.getContext().getFilesDir(), fileName);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        RandomAccessFile f = new RandomAccessFile(file, "rw");
+        f.setLength(fileSize);
+        return file;
     }
 }

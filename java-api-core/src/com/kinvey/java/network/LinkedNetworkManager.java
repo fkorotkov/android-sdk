@@ -59,6 +59,18 @@ public class LinkedNetworkManager<T extends LinkedGenericJson> extends NetworkMa
     }
 
     /**
+     * Constructor to instantiate the LinkedNetworkManager class.
+     *
+     * @param collectionName Name of the LinkedNetworkManager collection
+     * @param myClass        Class Type to marshall data between.
+     * @param client        Instance of a Client which manages this API
+     */
+    public LinkedNetworkManager(String collectionName, Class<T> myClass, AbstractClient client, MimeTypeFinder finder) {
+        super(collectionName, myClass, client);
+        mimetypeFinder = finder;
+    }
+
+    /**
      * Method to get an entity or entities and download ALL associated Linked Resources.
      * <p>
      * Pass null to entityID to return all entities in a collection.  Use the {@code DownloaderProgressListener}

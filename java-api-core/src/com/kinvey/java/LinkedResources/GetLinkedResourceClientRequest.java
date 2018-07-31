@@ -21,12 +21,14 @@ import com.kinvey.java.AbstractClient;
 import com.kinvey.java.Logger;
 import com.kinvey.java.core.AbstractKinveyJsonClientRequest;
 import com.kinvey.java.core.DownloaderProgressListener;
+import com.kinvey.java.core.MediaHttpDownloader;
 import com.kinvey.java.model.FileMetaData;
 import com.kinvey.java.store.BaseFileStore;
 import com.kinvey.java.store.StoreType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -63,9 +65,7 @@ public class GetLinkedResourceClientRequest<T> extends AbstractKinveyJsonClientR
 
     @Override
     public T execute() throws IOException {
-
         T entity = super.execute();
-
         if (entity instanceof LinkedGenericJson[]) {
         	Logger.INFO("Kinvey - LR, " + "linked resource array found");
             LinkedGenericJson[] casted = (LinkedGenericJson[]) entity;
@@ -73,69 +73,36 @@ public class GetLinkedResourceClientRequest<T> extends AbstractKinveyJsonClientR
                 downloadResources(ent);
             }
             return entity;
-
-
         } else if (entity instanceof LinkedGenericJson) {
         	Logger.INFO("Kinvey - LR, " + "linked resource instance found");
             downloadResources((LinkedGenericJson) entity);
             return entity;
-
         } else {
         	Logger.INFO("Kinvey - LR, " + "not a linked resource, behaving as usual!");
             return entity;
-
         }
-
-
-
     }
 
     private void downloadResources(LinkedGenericJson entity) throws IOException {
     	Logger.INFO("Kinvey - LR, " + "linked resource found, file count at: " + entity.getAllFiles().keySet().size());
-
         for (String key : (entity).getAllFiles().keySet()) {
-            if (entity.get(key) != null) {
-
+            if (entity.getFile(key) != null) {
             	Logger.INFO("Kinvey - LR, " + "getting a LinkedGenericJson: " + key);//-> " + ((Map) entity.get(key)).get("_loc").toString());
-
-                if (entity.getFile(key) == null) {
-                    if (((Map)entity.get(key)).containsKey("_id")){
-                        entity.putFile(key, new LinkedFile(((Map) entity.get(key)).get("_id").toString()));
-                    }else if (((Map)entity.get(key)).containsKey("_loc")){     //TODO backwards compt for v2 of NetworkFileManager API, this condition can be removed when it's done
-                        LinkedFile lf = new LinkedFile();
-                        lf.setFileName(((Map) entity.get(key)).get("_loc").toString());
-                        entity.putFile(key, lf);
-//                        entity.putFile(key, new LinkedFile(((Map) entity.get(key)).get("_loc").toString()));
-                    }
-                }
-
-
                 entity.getFile(key).setOutput(new ByteArrayOutputStream());
-
-                BaseFileStore store = getAbstractKinveyClient().getFileStore(StoreType.SYNC);
-
+                BaseFileStore store = getAbstractKinveyClient().getFileStore(StoreType.NETWORK);
                 FileMetaData meta = new FileMetaData();
-                if (((Map) entity.get(key)).containsKey("_id")){
-                    meta.setId(((Map) entity.get(key)).get("_id").toString());
-                    store.download(meta, entity.getFile(key).getOutput(), null, null, download);
-
-                }/*else if(((Map) entity.get(key)).containsKey("_loc")){
-                    meta.setFileName(((Map) entity.get(key)).get("_loc").toString());
-                    store.download(((Map) entity.get(key)).get("_loc").toString(),
-                            entity.getFile(key).getOutput(), null, download);
-
-                }*/
-
-
-
-//                FileMetaData meta = new FileMetaData(((Map) entity.get(key)).get("_id").toString());
-
-
+                meta.setId(entity.getFile(key).getId());
+                store.download(meta, entity.getFile(key).getOutput(), null, null, new DownloaderProgressListener() {
+                    @Override
+                    public void progressChanged(MediaHttpDownloader downloader) throws IOException {
+                        if (download != null) {
+                            download.progressChanged(downloader);
+                        }
+                    }
+                });
             }
         }
-
     }
-
 
 
     public DownloaderProgressListener getDownloadProgressListener() {

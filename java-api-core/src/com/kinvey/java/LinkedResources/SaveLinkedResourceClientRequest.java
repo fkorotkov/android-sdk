@@ -98,30 +98,7 @@ public class SaveLinkedResourceClientRequest<T> extends AbstractKinveyJsonClient
                             mediaContent.setRetrySupported(false);
                         }
 
-
-                        MetaUploadListener metaUploadListener = new MetaUploadListener() {
-                            @Override
-                            public void metaDataUploaded(FileMetaData metaData) {
-
-                            }
-
-                            @Override
-                            public void progressChanged(MediaHttpUploader uploader) throws IOException {
-
-                            }
-
-/*                            @Override
-                            public void onSuccess(FileMetaData result) {
-
-                            }
-
-                            @Override
-                            public void onFailure(Throwable error) {
-
-                            }*/
-                        };
-
-                        BaseFileStore fileStore = getAbstractKinveyClient().getFileStore(StoreType.SYNC);
+                        BaseFileStore fileStore = getAbstractKinveyClient().getFileStore(StoreType.NETWORK); // TODO: 30.7.18 check store type
 
                         LinkedFile lf = ((LinkedGenericJson) getJsonContent()).getFile(key);
                         FileMetaData meta = new FileMetaData(lf.getId());
@@ -141,21 +118,9 @@ public class SaveLinkedResourceClientRequest<T> extends AbstractKinveyJsonClient
                                     upload.progressChanged(uploader);
                                 }
                             }
-
-                            /*@Override
-                            public void onSuccess(FileMetaData result) {
-                                if (upload != null) {
-                                    upload.onSuccess(result);
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Throwable error) {
-                                if (upload != null) {
-                                    upload.onFailure(error);
-                                }
-                            }*/
                         });
+                        lf.setId(file.getId());
+                        ((LinkedGenericJson) getJsonContent()).putFile(key, lf);
 
                     }
                 }

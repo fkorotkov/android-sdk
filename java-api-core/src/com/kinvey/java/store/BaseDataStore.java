@@ -87,7 +87,7 @@ public class BaseDataStore<T extends GenericJson> {
     private final String collection;
     protected StoreType storeType;
     private Class<T> storeItemType;
-    private ICache<T> cache;
+    protected ICache<T> cache;
     private ICache<QueryCacheItem> queryCache;
     protected NetworkManager<T> networkManager;
 
