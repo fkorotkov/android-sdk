@@ -63,6 +63,8 @@ public class QueryNetworkTest {
                 @Override
                 public void run() {
                     try {
+
+                        
                         UserStore.login(TestManager.USERNAME, TestManager.PASSWORD, client, new KinveyClientCallback<User>() {
                             @Override
                             public void onSuccess(User result) {
