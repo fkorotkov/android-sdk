@@ -1,0 +1,97 @@
+# task:
+#   name: macOS
+#   osx_instance:
+#     image: mojave-xcode-10.1
+#   env:
+#     ANDROID_API: 23
+#   brew_update_script: brew update
+#   install_java_script: brew cask install homebrew/cask-versions/java8
+#   install_android_sdk_script: brew cask install android-sdk
+#   accept_licenses_script: yes | sdkmanager --licenses
+#   install_android_platforms_script: >
+#     sdkmanager \
+#       "platform-tools" \
+#       "tools" \
+#       "emulator" \
+#       "platforms;android-$ANDROID_API" \
+#       "system-images;android-$ANDROID_API;google_apis;x86_64"
+#   create_android_avd_script: >
+#     echo no | \
+#     avdmanager create avd \
+#     --force \
+#     --name test \
+#     --package "system-images;android-$ANDROID_API;google_apis;x86_64"
+#   create_sdcard_script: mksdcard -l mySdCard 1024M mySdCardFile.img
+#   start_emulator_background_script: >
+#     $ANDROID_HOME/emulator/emulator \
+#     -memory 2048 \
+#     -avd test \
+#     -sdcard mySdCardFile.img \
+#     -no-audio \
+#     -no-window
+#   wait_for_emulator_script:
+#     - adb wait-for-device
+#     - adb shell input keyevent 82
+#   check_script: ./gradlew check connectedCheck
+
+task:
+  name: Linux
+  container:
+    image: cirrusci/android-sdk:23
+    cpu: 4
+    memory: 12G
+  env:
+    ANDROID_API: 23
+    AVD_API: google_apis
+    AVD_ABI: armeabi-v7a
+    ADB_INSTALL_TIMEOUT: 10 # minutes
+    # KINVEY_APP_KEY: ENCRYPTED[e24aecec15356529f1987de46e0aa7b83252d18bd0116412b9d6f0f52fa38713e6d297d7944dbce7781f49565ac2038d]
+    # KINVEY_APP_SECRET: ENCRYPTED[f34cffa7ce548f9f7a8209bd0b5ef686863ebae701002e72615c090426a439644bbaf3caf176c2b941de9ba8409c3b8a]
+  sdkmanager_update_script: sdkmanager --update
+  sdkmanager_list_script: sdkmanager --list
+  # create_device_test_script: echo no | avdmanager create avd --force -n test
+  package_script: echo "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  create_device_script: >
+    echo no | avdmanager create avd --force \
+        -n test \
+        -k "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  start_emulator_background_script: >
+    $ANDROID_HOME/emulator/emulator \
+        -avd test \
+        -no-audio \
+        -no-window
+  license_script: printf "y\ny\ny\ny\ny\n" | sdkmanager --licenses
+  assemble_script: ./gradlew assemble assembleAndroidTest
+  wait_for_emulator_script:
+    - adb wait-for-device
+    - adb shell input keyevent 82
+  check_script: ./gradlew check connectedCheck
+  # environment_script:
+  #   - pwd
+  #   - uname -m
+  # apt_update_script: sudo apt update
+  # apt_install_script: sudo apt install -y lib32stdc++6
+  # sdkmanager_install_script: >
+  #   echo y | sdkmanager \
+  #     "platform-tools" \
+  #     "tools" \
+  #     "emulator" \
+  #     "platforms;android-$ANDROID_API" \
+  #     "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  # sdkmanager_update_script: sdkmanager --update
+  # sdkmanager_list_script: sdkmanager --list
+  # create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  # df_script: df -h
+  # start_emulator_background_script: $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window
+  # df2_script: df -h
+  # wait_for_emulator_script:
+  #   - adb wait-for-device
+  #   - adb shell input keyevent 82
+  #   - adb devices -l
+  # check_script: ./gradlew check connectedCheck
+  # kinvey_properties_script:
+  #   - sed -i "s/app.key=<YOUR_APP_KEY_HERE>/app.key=$KINVEY_APP_KEY/g" android-lib/src/androidTest/assets/kinvey.properties
+  #   - sed -i "s/app.secret=<YOUR_APP_SECRET_HERE>/app.secret=$KINVEY_APP_SECRET/g" android-lib/src/androidTest/assets/kinvey.properties
+  # test_data_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.data -PdisablePreDex --stacktrace --no-daemon
+  # test_file_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.file -PdisablePreDex --stacktrace --no-daemon
+  # test_user_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.user -PdisablePreDex --stacktrace --no-daemon

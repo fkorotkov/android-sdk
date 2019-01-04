@@ -82,7 +82,7 @@ buildscript {
     google()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.0.1'
+    classpath 'com.android.tools.build:gradle:3.4.0'
     classpath "io.realm:realm-gradle-plugin:3.2.1"
   }
 
@@ -124,11 +124,11 @@ dependencies {
   classpaths files(new File(System.getenv('ANDROID_HOME') + '/platforms/android-19/android.jar'))
   classpaths files('build/classes/release')
   //testing
-  androidTestCompile 'com.android.support:multidex-instrumentation:1.0.3'
+  androidTestCompile 'com.android.support:multidex-instrumentation:1.0.2'
   // Required -- JUnit 4 framework
   androidTestCompile 'junit:junit:4.12'
   // Optional -- Mockito framework
-  androidTestCompile 'org.mockito:mockito-android:2.7.15'
+  androidTestCompile 'org.mockito:mockito-android:2.27.0'
   androidTestCompile 'com.android.support:support-annotations:28.0.0'
   androidTestCompile 'com.android.support.test:runner:1.0.2'
   androidTestCompile 'com.android.support.test:rules:1.0.2'
@@ -161,7 +161,7 @@ task docgen(type: Javadoc) {
 
   source = android.sourceSets.main.java.srcDirs
 
-  options.docletpath = files("../tools/doclava-kinvey-custom.jar").asType(List)
+  options.docletpath = files("../tools/doclava-kinvey-custom.jar") as List
   options.doclet = "com.google.doclava.Doclava"
   maxMemory = "1024m"
   classpath = configurations.classpaths + configurations.compile + configurations.testCompile

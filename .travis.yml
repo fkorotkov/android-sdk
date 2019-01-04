@@ -43,6 +43,7 @@ before_script:
   - echo no | android create avd --force -n test -t android-$EMULATOR_API_LEVEL --abi $ANDROID_ABI
   - mksdcard -l mySdCard 1024M mySdCardFile.img
   - emulator -memory 2048 -avd test -sdcard mySdCardFile.img -no-window &
+  - echo y | sdkmanager --update
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
   - ./gradlew --stop

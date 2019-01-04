@@ -40,7 +40,7 @@ sourceSets {
 }
 
 jacoco {
-    toolVersion = "0.7.1.201405082137"
+    toolVersion = "0.8.2"
     reportsDir = file("$buildDir/customJacocoReportDir")
 }
 
@@ -57,7 +57,7 @@ dependencies {
     testCompile('com.google.http-client:google-http-client-gson:1.19.0') {
         exclude(module: 'xpp3')
     }
-    testCompile 'junit:junit:4.10'
+    testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.9.0'
     compile('com.google.http-client:google-http-client:1.19.0') {
         exclude(module: 'xpp3')
