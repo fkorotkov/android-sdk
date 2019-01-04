@@ -1,0 +1,65 @@
+# task:
+#   name: macOS
+#   osx_instance:
+#     image: mojave-xcode-10.1
+#   env:
+#     ANDROID_API: 23
+#   brew_update_script: brew update
+#   install_java_script: brew cask install homebrew/cask-versions/java8
+#   install_android_sdk_script: brew cask install android-sdk
+#   accept_licenses_script: yes | sdkmanager --licenses
+#   install_android_platforms_script: >
+#     sdkmanager \
+#       "platform-tools" \
+#       "tools" \
+#       "emulator" \
+#       "platforms;android-$ANDROID_API" \
+#       "system-images;android-$ANDROID_API;google_apis;x86_64"
+#   create_android_avd_script: >
+#     echo no | \
+#     avdmanager create avd \
+#     --force \
+#     --name test \
+#     --package "system-images;android-$ANDROID_API;google_apis;x86_64"
+#   create_sdcard_script: mksdcard -l mySdCard 1024M mySdCardFile.img
+#   start_emulator_background_script: >
+#     $ANDROID_HOME/emulator/emulator \
+#     -memory 2048 \
+#     -avd test \
+#     -sdcard mySdCardFile.img \
+#     -no-audio \
+#     -no-window
+#   wait_for_emulator_script:
+#     - adb wait-for-device
+#     - adb shell input keyevent 82
+#   check_script: ./gradlew check connectedCheck
+
+task:
+  name: Linux
+  container:
+    image: cirrusci/android-sdk:28
+  env:
+    ANDROID_API: 23
+    AVD_API: google_apis
+    AVD_ABI: armeabi-v7a
+  pwd_script: pwd
+  apt_update_script: sudo apt update
+  apt_install_script: sudo apt install -y lib32stdc++6
+  sdkmanager_install_script: >
+    sdkmanager \
+      "platform-tools" \
+      "tools" \
+      "emulator" \
+      "platforms;android-$ANDROID_API" \
+      "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  sdkmanager_update_script: sdkmanager --update
+  sdkmanager_list_script: sdkmanager --list
+  create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  create_sdcard_script: mksdcard -l mySdCard 1024M mySdCardFile.img
+  start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -memory 2048 -avd test -sdcard /tmp/cirrus-ci-build/mySdCardFile.img -no-audio -no-window
+  wait_for_emulator_script:
+    - adb wait-for-device
+    - adb shell input keyevent 82
+  test_data_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.data -PdisablePreDex --stacktrace --no-daemon
+  test_file_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.file -PdisablePreDex --stacktrace --no-daemon
+  test_user_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.user -PdisablePreDex --stacktrace --no-daemon

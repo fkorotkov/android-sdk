@@ -82,7 +82,7 @@ buildscript {
     google()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.0.1'
+    classpath 'com.android.tools.build:gradle:3.2.1'
     classpath "io.realm:realm-gradle-plugin:3.2.1"
   }
 
@@ -161,7 +161,7 @@ task docgen(type: Javadoc) {
 
   source = android.sourceSets.main.java.srcDirs
 
-  options.docletpath = files("../tools/doclava-kinvey-custom.jar").asType(List)
+  options.docletpath = files("../tools/doclava-kinvey-custom.jar") as List
   options.doclet = "com.google.doclava.Doclava"
   maxMemory = "1024m"
   classpath = configurations.classpaths + configurations.compile + configurations.testCompile
