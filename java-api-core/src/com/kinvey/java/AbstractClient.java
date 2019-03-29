@@ -59,6 +59,9 @@ public abstract class AbstractClient<T extends BaseUser> extends AbstractKinveyJ
      */
     public static final String DEFAULT_BASE_URL = "https://baas.kinvey.com/";
 
+
+
+
     /**
      * The default encoded service path of the service.
      */
