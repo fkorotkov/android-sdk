@@ -14,7 +14,7 @@ cache:
 env:
   global:
     - CI = true
-    - ANDROID_API=28
+    - ANDROID_API=26
     - EMULATOR_API_LEVEL=21
     - ANDROID_ABI=armeabi-v7a
     - ADB_INSTALL_TIMEOUT=10 # minutes
