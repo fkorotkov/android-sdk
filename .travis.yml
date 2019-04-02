@@ -15,7 +15,7 @@ env:
   global:
     - CI = true
     - ANDROID_API=28
-    - EMULATOR_API_LEVEL=24
+    - EMULATOR_API_LEVEL=28
     - ANDROID_ABI=armeabi-v7a
     - ANDROID_TAG=google_apis
     - ADB_INSTALL_TIMEOUT=10 # minutes
