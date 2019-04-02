@@ -15,8 +15,8 @@ env:
   global:
     - CI = true
     - ANDROID_API=28
-    - EMULATOR_API_LEVEL=26
-    - ANDROID_ABI=x86
+    - EMULATOR_API_LEVEL=22
+    - ANDROID_ABI=default;armeabi-v7a
     - ADB_INSTALL_TIMEOUT=10 # minutes
     - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxPermSize=1024m -Xms512m -XX:+HeapDumpOnOutOfMemoryError"
   matrix:
@@ -42,7 +42,7 @@ before_script:
   - android list targets
   - echo no | android create avd --force -n test -t android-$EMULATOR_API_LEVEL --abi $ANDROID_ABI
   - mksdcard -l mySdCard 1024M mySdCardFile.img
-  - emulator -memory 2048 -avd test -sdcard mySdCardFile.img -no-audio -no-window -no-boot-anim &
+  - emulator -memory 2048 -avd test -sdcard mySdCardFile.img -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
   - ./gradlew --stop
