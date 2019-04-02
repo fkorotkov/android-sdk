@@ -14,8 +14,8 @@ cache:
 env:
   global:
     - CI = true
-    - ANDROID_API=26
-    - EMULATOR_API_LEVEL=26
+    - ANDROID_API=28
+    - EMULATOR_API_LEVEL=21
     - ANDROID_ABI=armeabi-v7a
     - ADB_INSTALL_TIMEOUT=10 # minutes
     - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxPermSize=1024m -Xms512m -XX:+HeapDumpOnOutOfMemoryError"
@@ -29,7 +29,7 @@ android:
     - tools
     - platform-tools
     - tools
-    - build-tools-26.0.2
+    - build-tools-26.1.1
     - android-$ANDROID_API
     - android-$EMULATOR_API_LEVEL
     - extra-google-google_play_services
