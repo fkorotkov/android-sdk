@@ -15,9 +15,8 @@ env:
   global:
     - CI = true
     - ANDROID_API=28
-    - EMULATOR_API_LEVEL=28
+    - EMULATOR_API_LEVEL=21
     - ANDROID_ABI=armeabi-v7a
-    - ANDROID_TAG=google_apis
     - ADB_INSTALL_TIMEOUT=10 # minutes
     - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxPermSize=1024m -Xms512m -XX:+HeapDumpOnOutOfMemoryError"
   matrix:
@@ -30,18 +29,18 @@ android:
     - tools
     - platform-tools
     - tools
-    - build-tools-28.0.3
+    - build-tools-26.0.2
     - android-$ANDROID_API
     - android-$EMULATOR_API_LEVEL
     - extra-google-google_play_services
     - extra-google-m2repository
     - extra-android-m2repository # for design library
     - addon-google_apis-google-$ANDROID_API # google play services
-    - sys-img-$ANDROID_ABI-google_apis-$EMULATOR_API_LEVEL
+    - sys-img-$ANDROID_ABI-$EMULATOR_API_LEVEL
 before_script:
   - chmod +x gradlew
   - android list targets
-  - echo no | android create avd --force -n test -t android-$EMULATOR_API_LEVEL --abi $ANDROID_ABI --tag $ANDROID_TAG
+  - echo no | android create avd --force -n test -t android-$EMULATOR_API_LEVEL --abi $ANDROID_ABI
   - mksdcard -l mySdCard 1024M mySdCardFile.img
   - emulator -memory 2048 -avd test -sdcard mySdCardFile.img -no-window &
   - android-wait-for-emulator
