@@ -14,7 +14,7 @@ cache:
 env:
   global:
     - CI = true
-    - ANDROID_API=28
+    - ANDROID_API=24
     - EMULATOR_API_LEVEL=22
     - ANDROID_ABI=armeabi-v7a
     - ADB_INSTALL_TIMEOUT=10 # minutes
@@ -30,8 +30,8 @@ android:
     - platform-tools
     - tools
     - build-tools-25.0.2
-    - android-$ANDROID_API
     - android-$EMULATOR_API_LEVEL
+    - android-$ANDROID_API
     - extra-google-google_play_services
     - extra-google-m2repository
     - extra-android-m2repository # for design library
