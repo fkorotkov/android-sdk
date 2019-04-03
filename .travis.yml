@@ -1,7 +1,6 @@
 language: android
+sudo: required
 jdk: oraclejdk8
-dist: precise
-sudo: true
 
 
 before_cache:
