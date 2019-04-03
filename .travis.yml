@@ -15,9 +15,9 @@ cache:
 env:
  global:
  - CI = true
- - ANDROID_API=25
+ - ANDROID_API=28
  - EMULATOR_API=24
- - ANDROID_BUILD_TOOLS=25.0.2
+ - ANDROID_BUILD_TOOLS=26.0.2
  - ADB_INSTALL_TIMEOUT=5 # minutes
  matrix:
  - PACKAGE=store.data
