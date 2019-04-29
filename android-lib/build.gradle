@@ -128,7 +128,7 @@ dependencies {
   // Required -- JUnit 4 framework
   androidTestCompile 'junit:junit:4.12'
   // Optional -- Mockito framework
-  androidTestCompile 'org.mockito:mockito-android:2.7.15'
+  androidTestCompile 'org.mockito:mockito-android:2.27.0'
   androidTestCompile 'com.android.support:support-annotations:28.0.0'
   androidTestCompile 'com.android.support.test:runner:1.0.2'
   androidTestCompile 'com.android.support.test:rules:1.0.2'
