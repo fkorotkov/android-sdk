@@ -62,6 +62,7 @@ task:
   wait_for_emulator_script:
     - adb wait-for-device
     - adb shell input keyevent 82
+    - adb devices -l
   kinvey_properties_script:
     - sed -i "s/app.key=<YOUR_APP_KEY_HERE>/app.key=$KINVEY_APP_KEY/g" android-lib/src/androidTest/assets/kinvey.properties
     - sed -i "s/app.secret=<YOUR_APP_SECRET_HERE>/app.secret=$KINVEY_APP_SECRET/g" android-lib/src/androidTest/assets/kinvey.properties
