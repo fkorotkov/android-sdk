@@ -58,12 +58,13 @@ task:
   sdkmanager_list_script: sdkmanager --list
   create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
   create_sdcard_script: mksdcard -l mySdCard 1024M mySdCardFile.img
-  start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -memory 2048 -avd test -sdcard /tmp/cirrus-ci-build/mySdCardFile.img -no-audio -no-window
+  start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -avd test -no-audio -no-window
   wait_for_emulator_script:
     - adb wait-for-device
     - adb shell input keyevent 82
-  kinvey_properties_app_key_script: sed -i '' "s/app.key=<YOUR_APP_KEY_HERE>/app.key=$KINVEY_APP_KEY/g" android-lib/src/androidTest/assets/kinvey.properties
-  kinvey_properties_app_secret_script: sed -i '' "s/app.secret=<YOUR_APP_SECRET_HERE>/app.secret=$KINVEY_APP_SECRET/g" android-lib/src/androidTest/assets/kinvey.properties
+  kinvey_properties_script:
+    - sed -i "s/app.key=<YOUR_APP_KEY_HERE>/app.key=$KINVEY_APP_KEY/g" android-lib/src/androidTest/assets/kinvey.properties
+    - sed -i "s/app.secret=<YOUR_APP_SECRET_HERE>/app.secret=$KINVEY_APP_SECRET/g" android-lib/src/androidTest/assets/kinvey.properties
   test_data_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.data -PdisablePreDex --stacktrace --no-daemon
   test_file_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.file -PdisablePreDex --stacktrace --no-daemon
   test_user_script: ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.kinvey.androidTest.store.user -PdisablePreDex --stacktrace --no-daemon
