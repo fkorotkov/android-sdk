@@ -303,6 +303,5 @@
     <orderEntry type="library" name="Gradle: com.google.firebase:firebase-auth:10.2.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-media-compat:28.0.0@aar" level="project" />
     <orderEntry type="module" module-name="java-api-core" />
-    <orderEntry type="module" module-name="java-api-core" />
   </component>
 </module>
