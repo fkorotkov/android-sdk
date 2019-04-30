@@ -58,7 +58,7 @@ task:
       "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
   sdkmanager_update_script: sdkmanager --update
   sdkmanager_list_script: sdkmanager --list
-  create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI"
+  create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI" --device "Nexus 5X" -c 6G
   create_sdcard_script: mksdcard -l mySdCard 1024M mySdCardFile.img
   start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -avd test -no-audio -no-window
   wait_for_emulator_script:
