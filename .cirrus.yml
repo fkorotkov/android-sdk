@@ -37,7 +37,9 @@
 task:
   name: Linux
   container:
-    image: cirrusci/android-sdk:28
+    image: cirrusci/android-sdk:tools
+    cpu: 4
+    memory: 12G
   env:
     ANDROID_API: 23
     AVD_API: google_apis
@@ -62,7 +64,7 @@ task:
   start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -avd test -no-audio -no-window
   df_script: df -h
   wait_for_emulator_script:
-    - adb wait-for-device
+    - android-wait-for-emulator
     - adb shell input keyevent 82
     - adb devices -l
   check_script: ./gradlew check connectedCheck
