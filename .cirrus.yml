@@ -37,7 +37,7 @@
 task:
   name: Linux
   container:
-    image: cirrusci/android-sdk:base
+    image: cirrusci/android-sdk:tools
     cpu: 4
     memory: 12G
   env:
