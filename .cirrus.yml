@@ -61,7 +61,7 @@ task:
   create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI" --device "Nexus 5X" -c 6G
   start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -avd test -no-audio -no-window
   df_script: df -h
-  wait_for_emulator_script:|
+  wait_for_emulator_script: >
       bootanim=""
       failcounter=0
       timeout_in_sec=360
