@@ -38,6 +38,8 @@ task:
   name: Linux
   container:
     image: cirrusci/android-sdk:28
+    cpu: 4
+    memory: 12G
   env:
     ANDROID_API: 23
     AVD_API: google_apis
