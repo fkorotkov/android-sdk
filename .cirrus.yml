@@ -79,8 +79,6 @@ task:
         fi
         sleep 1
       done
-      adb shell input keyevent 82
-      adb devices -l
   check_script: ./gradlew check connectedCheck
   kinvey_properties_script:
     - sed -i "s/app.key=<YOUR_APP_KEY_HERE>/app.key=$KINVEY_APP_KEY/g" android-lib/src/androidTest/assets/kinvey.properties
