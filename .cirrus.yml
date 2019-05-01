@@ -61,24 +61,25 @@ task:
   create_android_avd_script: echo no | avdmanager create avd --force --name test --package "system-images;android-$ANDROID_API;$AVD_API;$AVD_ABI" --device "Nexus 5X" -c 6G
   start_emulator_background_script: cd $(dirname $(which emulator)) && ./emulator -avd test -no-audio -no-window
   df_script: df -h
-  wait_for_emulator_script: >
-      bootanim=""
-      failcounter=0
-      timeout_in_sec=360
-
-      until [[ "$bootanim" =~ "stopped" ]]; do
-        bootanim=$(adb -e shell getprop init.svc.bootanim 2>&1)
-        if [[ "$bootanim" =~ "device not found" || "$bootanim" =~ "device offline"
-          || "$bootanim" =~ "running" ]]; then
-          let "failcounter += 1"
-          echo "Waiting for emulator to start"
-          if [[ $failcounter -gt timeout_in_sec ]]; then
-            echo "Timeout ($timeout_in_sec seconds) reached; failed to start emulator"
-            exit 1
-          fi
-        fi
-        sleep 1
-      done
+  wait_for_emulator_script:
+    - bootanim=""
+    - failcounter=0
+    - timeout_in_sec=360
+    - until [[ "$bootanim" =~ "stopped" ]]; do
+    -   bootanim=$(adb -e shell getprop init.svc.bootanim 2>&1)
+    -   if [[ "$bootanim" =~ "device not found" || "$bootanim" =~ "device offline"
+    -     || "$bootanim" =~ "running" ]]; then
+    -     let "failcounter += 1"
+    -     echo "Waiting for emulator to start"
+    -     if [[ $failcounter -gt timeout_in_sec ]]; then
+    -       echo "Timeout ($timeout_in_sec seconds) reached; failed to start emulator"
+    -       exit 1
+    -     fi
+    -   fi
+    -   sleep 1
+    - done
+    - adb shell input keyevent 82
+    - adb devices -l
   check_script: ./gradlew check connectedCheck
   kinvey_properties_script:
     - sed -i "s/app.key=<YOUR_APP_KEY_HERE>/app.key=$KINVEY_APP_KEY/g" android-lib/src/androidTest/assets/kinvey.properties
